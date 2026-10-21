@@ -1,0 +1,9 @@
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp" android:height="108dp" android:viewportWidth="108" android:viewportHeight="108">
+    <!-- Sonne, halb hinter den Bergen -->
+    <path android:fillColor="#FFFFD9A8" android:pathData="M54,38a12,12 0,1 1,0 24a12,12 0,1 1,0 -24z" />
+    <!-- ferne Kette -->
+    <path android:fillColor="#FF3B4F7A" android:pathData="M21,74L38,54L48,63L62,46L87,74Z" />
+    <!-- nahe Kette -->
+    <path android:fillColor="#FF16203A" android:pathData="M21,80L36,67L47,76L66,58L87,80L87,87L21,87Z" />
+</vector>

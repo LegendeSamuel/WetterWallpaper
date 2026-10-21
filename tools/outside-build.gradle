@@ -1,0 +1,5 @@
+// Baut außerhalb von OneDrive: OneDrive setzt in app/build sonst Schreibschutz und Gradle bricht ab.
+// Aufruf: gradle -I tools/outside-build.gradle assembleDebug  →  APK in %LOCALAPPDATA%\WetterWallpaperBuild\app\outputs\apk\debug
+allprojects {
+    layout.buildDirectory = new File(System.getenv("LOCALAPPDATA") ?: System.getProperty("java.io.tmpdir"), "WetterWallpaperBuild/" + project.name)
+}

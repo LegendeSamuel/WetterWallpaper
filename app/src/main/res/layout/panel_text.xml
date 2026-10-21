@@ -1,0 +1,303 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Regler für Uhr oder Widget (zweimal in activity_main eingebunden, Code: TextPanel).
+     Je Werkzeug eine Gruppe; sichtbar ist immer nur die Gruppe des gewählten Werkzeugs. -->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical">
+
+    <!-- Hinweis, wenn das Widget an die Uhr gekoppelt ist -->
+    <TextView
+        android:id="@+id/linkNote"
+        style="@style/Wetter.Help"
+        android:layout_marginBottom="6dp"
+        android:text="Gekoppelt: Schrift, Farbe und Schatten kommen von der Uhr. Lösen unter „Inhalt“."
+        android:visibility="gone" />
+
+    <LinearLayout
+        android:id="@+id/groupFont"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical">
+
+        <HorizontalScrollView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:scrollbars="none">
+
+            <com.google.android.material.chip.ChipGroup
+                android:id="@+id/fontChips"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                app:selectionRequired="true"
+                app:singleLine="true"
+                app:singleSelection="true" />
+        </HorizontalScrollView>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="4dp"
+            android:gravity="center_vertical"
+            android:orientation="horizontal">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Stärke"
+                android:textAppearance="?attr/textAppearanceLabelLarge" />
+
+            <com.google.android.material.slider.Slider
+                android:id="@+id/weightSlider"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:contentDescription="Schriftstärke, von dünn bis fett"
+                android:stepSize="50"
+                android:valueFrom="100"
+                android:valueTo="900"
+                app:tickVisible="false" />
+        </LinearLayout>
+
+        <com.google.android.material.materialswitch.MaterialSwitch
+            android:id="@+id/zeroSwitch"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Führende Null (09:05 statt 9:05)" />
+
+        <com.google.android.material.materialswitch.MaterialSwitch
+            android:id="@+id/upperSwitch"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Großbuchstaben" />
+    </LinearLayout>
+
+    <com.google.android.material.slider.Slider
+        android:id="@+id/sizeSlider"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:contentDescription="Größe"
+        android:stepSize="1"
+        android:valueFrom="15"
+        android:valueTo="45"
+        android:visibility="gone"
+        app:tickVisible="false" />
+
+    <com.google.android.material.slider.Slider
+        android:id="@+id/spacingSlider"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:contentDescription="Laufweite, Abstand zwischen den Zeichen"
+        android:stepSize="1"
+        android:valueFrom="-50"
+        android:valueTo="100"
+        android:visibility="gone"
+        app:tickVisible="false" />
+
+    <com.google.android.material.button.MaterialButtonToggleGroup
+        android:id="@+id/alignToggle"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:visibility="gone"
+        app:selectionRequired="true"
+        app:singleSelection="true">
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/alignLeft"
+            style="?attr/materialButtonOutlinedStyle"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="Links" />
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/alignCenter"
+            style="?attr/materialButtonOutlinedStyle"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="Mitte" />
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/alignRight"
+            style="?attr/materialButtonOutlinedStyle"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="Rechts" />
+    </com.google.android.material.button.MaterialButtonToggleGroup>
+
+    <LinearLayout
+        android:id="@+id/groupColor"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:visibility="gone">
+
+        <com.google.android.material.button.MaterialButtonToggleGroup
+            android:id="@+id/dayNightToggle"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="4dp"
+            app:checkedButton="@id/colorDay"
+            app:selectionRequired="true"
+            app:singleSelection="true">
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/colorDay"
+                style="?attr/materialButtonOutlinedStyle"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:minWidth="0dp"
+                android:text="Tagsüber" />
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/colorNight"
+                style="?attr/materialButtonOutlinedStyle"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:minWidth="0dp"
+                android:text="Nachts" />
+        </com.google.android.material.button.MaterialButtonToggleGroup>
+
+        <HorizontalScrollView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:clipToPadding="false"
+            android:scrollbars="none">
+
+            <LinearLayout
+                android:id="@+id/colorRow"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:gravity="center_vertical"
+                android:orientation="horizontal"
+                android:paddingVertical="4dp" />
+        </HorizontalScrollView>
+
+        <TextView
+            android:id="@+id/colorHelp"
+            style="@style/Wetter.Help"
+            android:layout_marginTop="6dp" />
+    </LinearLayout>
+
+    <com.google.android.material.slider.Slider
+        android:id="@+id/opacitySlider"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:contentDescription="Deckkraft"
+        android:stepSize="1"
+        android:valueFrom="0"
+        android:valueTo="100"
+        android:visibility="gone"
+        app:tickVisible="false" />
+
+    <LinearLayout
+        android:id="@+id/groupLayer"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:visibility="gone">
+
+        <com.google.android.material.materialswitch.MaterialSwitch
+            android:id="@+id/depthAutoSwitch"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Automatisch wählen" />
+
+        <com.google.android.material.slider.Slider
+            android:id="@+id/depthSlider"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:contentDescription="Ebene, von hinter allem bis vor allem"
+            android:stepSize="1"
+            android:valueFrom="0"
+            android:valueTo="100"
+            app:tickVisible="false" />
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:paddingHorizontal="16dp">
+
+            <TextView
+                style="@style/Wetter.Help"
+                android:layout_width="0dp"
+                android:layout_weight="1"
+                android:text="Hinter allem" />
+
+            <TextView
+                style="@style/Wetter.Help"
+                android:layout_width="wrap_content"
+                android:text="Vor allem" />
+        </LinearLayout>
+
+        <TextView
+            android:id="@+id/depthHelp"
+            style="@style/Wetter.Help"
+            android:layout_marginTop="6dp" />
+    </LinearLayout>
+
+    <!-- Nur Widget: was es zeigt und wie -->
+    <LinearLayout
+        android:id="@+id/groupContent"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:visibility="gone">
+
+        <com.google.android.material.chip.ChipGroup
+            android:id="@+id/formatChips"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            app:selectionRequired="true"
+            app:singleSelection="true" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:text="Datum"
+            android:textAppearance="?attr/textAppearanceLabelLarge" />
+
+        <HorizontalScrollView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:scrollbars="none">
+
+            <com.google.android.material.chip.ChipGroup
+                android:id="@+id/dateChips"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                app:selectionRequired="true"
+                app:singleLine="true"
+                app:singleSelection="true" />
+        </HorizontalScrollView>
+
+        <com.google.android.material.materialswitch.MaterialSwitch
+            android:id="@+id/twoLinesSwitch"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Zweizeilig (Datum oben, Wetter unten)" />
+
+        <com.google.android.material.materialswitch.MaterialSwitch
+            android:id="@+id/iconsSwitch"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Wetter als Linien-Symbol statt Emoji" />
+
+        <com.google.android.material.materialswitch.MaterialSwitch
+            android:id="@+id/glassSwitch"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Glas-Hintergrund" />
+
+        <com.google.android.material.materialswitch.MaterialSwitch
+            android:id="@+id/linkSwitch"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Schrift und Farbe wie die Uhr" />
+    </LinearLayout>
+</LinearLayout>

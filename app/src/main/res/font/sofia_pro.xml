@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Sofia Pro, Schnitte wie auf der Website (200–700). -->
+<font-family xmlns:android="http://schemas.android.com/apk/res/android">
+    <font android:font="@font/sofiapro_extralight" android:fontStyle="normal" android:fontWeight="200" />
+    <font android:font="@font/sofiapro_light" android:fontStyle="normal" android:fontWeight="300" />
+    <font android:font="@font/sofiapro_regular" android:fontStyle="normal" android:fontWeight="400" />
+    <font android:font="@font/sofiapro_medium" android:fontStyle="normal" android:fontWeight="500" />
+    <font android:font="@font/sofiapro_semibold" android:fontStyle="normal" android:fontWeight="600" />
+    <font android:font="@font/sofiapro_bold" android:fontStyle="normal" android:fontWeight="700" />
+</font-family>

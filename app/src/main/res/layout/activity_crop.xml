@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Ausschnitt wählen: Bild ziehen/zoomen, Uhr-Umriss zeigt, wo die Uhr landet -->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/root"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="?attr/colorSurface"
+    android:orientation="vertical">
+
+    <com.google.android.material.appbar.MaterialToolbar
+        android:id="@+id/toolbar"
+        android:layout_width="match_parent"
+        android:layout_height="?attr/actionBarSize"
+        app:navigationContentDescription="Abbrechen"
+        app:navigationIcon="@drawable/ic_close"
+        app:title="Ausschnitt wählen" />
+
+    <FrameLayout
+        android:id="@+id/cropContainer"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1">
+
+        <TextView
+            android:id="@+id/hint"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="bottom|center_horizontal"
+            android:layout_marginBottom="40dp"
+            android:background="@drawable/bg_hint"
+            android:elevation="2dp"
+            android:paddingHorizontal="14dp"
+            android:paddingVertical="6dp"
+            android:text="Ziehen zum Verschieben, zwei Finger zum Zoomen"
+            android:textAppearance="?attr/textAppearanceLabelMedium"
+            android:textColor="#FFFFFFFF" />
+    </FrameLayout>
+
+    <com.google.android.material.progressindicator.LinearProgressIndicator
+        android:id="@+id/progress"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginHorizontal="24dp"
+        android:indeterminate="true"
+        android:visibility="invisible" />
+
+    <TextView
+        android:id="@+id/status"
+        style="@style/Wetter.Help"
+        android:layout_marginTop="8dp"
+        android:gravity="center"
+        android:paddingHorizontal="24dp"
+        android:text="Der Umriss zeigt, wo die Uhr sitzt. Verschieben kannst du sie danach in der Vorschau." />
+
+    <com.google.android.material.button.MaterialButton
+        android:id="@+id/apply"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginHorizontal="24dp"
+        android:layout_marginTop="12dp"
+        android:layout_marginBottom="16dp"
+        android:enabled="false"
+        android:text="Übernehmen" />
+</LinearLayout>
