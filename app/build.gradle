@@ -1,0 +1,38 @@
+plugins {
+    id 'com.android.application'
+}
+
+android {
+    namespace 'de.seelig.wetterwallpaper'
+    compileSdk 34
+
+    defaultConfig {
+        applicationId 'de.seelig.wetterwallpaper'
+        minSdk 29
+        targetSdk 34
+        versionCode 2
+        versionName '0.2'
+        // nur das S24/moderne Handys: hält die ONNX-Runtime klein
+        ndk { abiFilters 'arm64-v8a' }
+    }
+
+    // Nicht debuggable: ART optimiert sonst die Pixelschleifen kaum (Szene ~10x langsamer). Log und adb gehen trotzdem.
+    buildTypes { debug { debuggable false } }
+
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_17
+        targetCompatibility JavaVersion.VERSION_17
+    }
+
+    // Tiefenmodell unkomprimiert, damit es direkt geladen werden kann
+    androidResources { noCompress 'onnx' }
+
+    // ONNX-Runtime komprimiert packen (APK ~ halb so groß); 16-KB-Ausrichtung steckt in den .so selbst
+    packaging { jniLibs { useLegacyPackaging true } }
+}
+
+dependencies {
+    implementation 'com.microsoft.onnxruntime:onnxruntime-android:1.30.0'
+    implementation 'androidx.appcompat:appcompat:1.7.0'
+    implementation 'com.google.android.material:material:1.12.0'
+}

@@ -1,0 +1,327 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Vollbild-Vorschau. Oben schwebend: Modus-Pille, Rückgängig/Wiederholen, Einstellungen (☰), Speichern.
+     Unten: Karte mit Elementen, genau einem Regler und den Werkzeugen der gewählten Gruppe, darunter die fünf Gruppen. -->
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/root"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="?attr/colorSurface">
+
+    <de.seelig.wetterwallpaper.PreviewView
+        android:id="@+id/preview"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_gravity="center" />
+
+    <!-- Oben -->
+    <LinearLayout
+        android:id="@+id/topBar"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_gravity="top"
+        android:gravity="center_vertical"
+        android:orientation="horizontal"
+        android:paddingHorizontal="12dp"
+        android:paddingVertical="8dp">
+
+        <de.seelig.wetterwallpaper.GlassCard
+            android:id="@+id/modeGlass"
+            android:layout_width="wrap_content"
+            android:layout_height="48dp">
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/modeButton"
+                style="@style/Widget.Material3.Button.TextButton.Icon"
+                android:layout_width="wrap_content"
+                android:layout_height="48dp"
+                android:contentDescription="Modus und Zeiten"
+                android:ellipsize="end"
+                android:insetTop="0dp"
+                android:insetBottom="0dp"
+                android:maxLines="1"
+                android:maxWidth="150dp"
+                android:paddingStart="12dp"
+                android:paddingEnd="14dp"
+                android:text="Tag"
+                android:textAllCaps="false"
+                app:icon="@drawable/ic_sun" />
+        </de.seelig.wetterwallpaper.GlassCard>
+
+        <Space
+            android:layout_width="0dp"
+            android:layout_height="0dp"
+            android:layout_weight="1" />
+
+        <de.seelig.wetterwallpaper.GlassCard
+            android:id="@+id/historyGlass"
+            android:layout_width="wrap_content"
+            android:layout_height="48dp"
+            android:layout_marginEnd="6dp">
+
+            <LinearLayout
+                android:layout_width="wrap_content"
+                android:layout_height="48dp"
+                android:orientation="horizontal">
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/undoButton"
+                    style="@style/Widget.Material3.Button.IconButton"
+                    android:layout_width="42dp"
+                    android:layout_height="48dp"
+                    android:contentDescription="Rückgängig"
+                    android:enabled="false"
+                    app:icon="@drawable/ic_undo" />
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/redoButton"
+                    style="@style/Widget.Material3.Button.IconButton"
+                    android:layout_width="42dp"
+                    android:layout_height="48dp"
+                    android:contentDescription="Wiederholen"
+                    android:enabled="false"
+                    app:icon="@drawable/ic_redo" />
+            </LinearLayout>
+        </de.seelig.wetterwallpaper.GlassCard>
+
+        <de.seelig.wetterwallpaper.GlassCard
+            android:id="@+id/menuGlass"
+            android:layout_width="48dp"
+            android:layout_height="48dp"
+            android:layout_marginEnd="6dp">
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/menuButton"
+                style="@style/Widget.Material3.Button.IconButton"
+                android:layout_width="48dp"
+                android:layout_height="48dp"
+                android:contentDescription="Einstellungen: Szene, Favoriten, Bild, Wetter"
+                app:icon="@drawable/ic_menu" />
+        </de.seelig.wetterwallpaper.GlassCard>
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/statusButton"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:paddingHorizontal="16dp"
+            android:text="Festlegen" />
+    </LinearLayout>
+
+    <!-- Erster Start: noch kein Bild -->
+    <com.google.android.material.card.MaterialCardView
+        android:id="@+id/emptyState"
+        style="@style/Widget.Material3.CardView.Filled"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center"
+        android:layout_marginHorizontal="24dp"
+        android:visibility="gone"
+        app:cardCornerRadius="28dp">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:gravity="center_horizontal"
+            android:orientation="vertical"
+            android:padding="28dp">
+
+            <ImageView
+                android:layout_width="56dp"
+                android:layout_height="56dp"
+                android:importantForAccessibility="no"
+                android:src="@drawable/ic_image"
+                app:tint="?attr/colorPrimary" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="16dp"
+                android:text="Dein Foto, dein Wetter"
+                android:textAppearance="?attr/textAppearanceTitleLarge" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                android:gravity="center"
+                android:text="Wähle ein Foto. Die App erkennt Vorder- und Hintergrund, setzt die Uhr dazwischen und lässt Tageszeit und echtes Wetter darin stattfinden."
+                android:textAppearance="?attr/textAppearanceBodyMedium"
+                android:textColor="?attr/colorOnSurfaceVariant" />
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/emptyPick"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="20dp"
+                android:text="Foto wählen"
+                app:icon="@drawable/ic_image" />
+        </LinearLayout>
+    </com.google.android.material.card.MaterialCardView>
+
+    <!-- Unten: Regler + Werkzeuge -->
+    <LinearLayout
+        android:id="@+id/editor"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_gravity="bottom"
+        android:orientation="vertical"
+        android:paddingHorizontal="12dp"
+        android:paddingBottom="12dp">
+
+        <TextView
+            android:id="@+id/dragHint"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center_horizontal"
+            android:layout_marginBottom="10dp"
+            android:background="@drawable/bg_hint"
+            android:paddingHorizontal="14dp"
+            android:paddingVertical="6dp"
+            android:text="Antippen zum Bearbeiten · ziehen verschiebt · zwei Finger ändern die Größe"
+            android:textAppearance="?attr/textAppearanceLabelMedium"
+            android:textColor="#FFFFFFFF" />
+
+        <de.seelig.wetterwallpaper.GlassCard
+            android:id="@+id/toolCard"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="8dp">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:paddingHorizontal="14dp"
+                android:paddingTop="10dp"
+                android:paddingBottom="12dp">
+
+                <!-- Elemente in eigener Zeile, rechts Sichtbarkeit und Entfernen -->
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:gravity="center_vertical"
+                    android:orientation="horizontal">
+
+                    <HorizontalScrollView
+                        android:id="@+id/elementScroll"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:fadingEdgeLength="24dp"
+                        android:requiresFadingEdge="horizontal"
+                        android:scrollbars="none">
+
+                        <com.google.android.material.chip.ChipGroup
+                            android:id="@+id/elementChips"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            app:selectionRequired="true"
+                            app:singleLine="true"
+                            app:singleSelection="true" />
+                    </HorizontalScrollView>
+
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/visibleButton"
+                        style="@style/Widget.Material3.Button.IconButton"
+                        android:layout_width="40dp"
+                        android:layout_height="40dp"
+                        android:layout_marginStart="2dp"
+                        android:contentDescription="Element ausblenden"
+                        app:icon="@drawable/ic_eye" />
+
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/deleteButton"
+                        style="@style/Widget.Material3.Button.IconButton"
+                        android:layout_width="40dp"
+                        android:layout_height="40dp"
+                        android:contentDescription="Element entfernen"
+                        app:icon="@drawable/ic_delete"
+                        app:iconTint="?attr/colorError" />
+                </LinearLayout>
+
+                <!-- Werkzeugname, "gilt für …" und "Wie Tag" -->
+                <LinearLayout
+                    android:id="@+id/toolHead"
+                    android:layout_width="match_parent"
+                    android:layout_height="32dp"
+                    android:layout_marginTop="2dp"
+                    android:gravity="center_vertical"
+                    android:orientation="horizontal">
+
+                    <TextView
+                        android:id="@+id/toolTitle"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:ellipsize="end"
+                        android:maxLines="1"
+                        android:textAppearance="?attr/textAppearanceLabelMedium"
+                        android:textColor="?attr/colorOnSurfaceVariant" />
+
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/resetDayButton"
+                        style="@style/Widget.Material3.Button.TextButton"
+                        android:layout_width="wrap_content"
+                        android:layout_height="32dp"
+                        android:insetTop="0dp"
+                        android:insetBottom="0dp"
+                        android:minWidth="0dp"
+                        android:paddingHorizontal="8dp"
+                        android:text="↺ Wie Tag"
+                        android:textAllCaps="false"
+                        android:visibility="gone" />
+                </LinearLayout>
+
+                <FrameLayout
+                    android:id="@+id/panelClock"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content" />
+
+                <FrameLayout
+                    android:id="@+id/panelWidget"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:visibility="gone" />
+
+                <!-- Panels der Info-Widgets (WidgetManager) -->
+                <FrameLayout
+                    android:id="@+id/panelExtra"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content" />
+
+                <!-- Werkzeuge der gewählten Gruppe -->
+                <HorizontalScrollView
+                    android:id="@+id/toolScroll"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="6dp"
+                    android:fadingEdgeLength="24dp"
+                    android:requiresFadingEdge="horizontal"
+                    android:scrollbars="none">
+
+                    <com.google.android.material.chip.ChipGroup
+                        android:id="@+id/toolChips"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        app:selectionRequired="true"
+                        app:singleLine="true"
+                        app:singleSelection="true" />
+                </HorizontalScrollView>
+            </LinearLayout>
+        </de.seelig.wetterwallpaper.GlassCard>
+
+        <!-- Fünf Werkzeuggruppen -->
+        <de.seelig.wetterwallpaper.GlassCard
+            android:id="@+id/toolBar"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content">
+
+            <LinearLayout
+                android:id="@+id/groupRow"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:padding="4dp" />
+        </de.seelig.wetterwallpaper.GlassCard>
+    </LinearLayout>
+</FrameLayout>

@@ -1,0 +1,185 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Seelig Designs (Designsystem "Seelig Designs"): Bernstein auf fast Schwarz, Sofia Pro leicht und groß.
+         Fest dunkel, nicht mehr Material You. Werte aus tokens.json: amber #F2A007, gold #F2B807, on-accent #121212,
+         bg #121212, surface #181818, surface-card #1C1C1C, text #FFFFFF, text-label #CCCCCC, line-strong. -->
+    <style name="Theme.Wetter" parent="Theme.Material3.Dark.NoActionBar">
+        <item name="android:statusBarColor">@android:color/transparent</item>
+        <item name="android:navigationBarColor">@android:color/transparent</item>
+        <item name="android:windowLightStatusBar">false</item>
+
+        <item name="colorPrimary">#F2A007</item>
+        <item name="colorOnPrimary">#121212</item>
+        <item name="colorPrimaryContainer">#3B2A09</item>
+        <item name="colorOnPrimaryContainer">#F2B807</item>
+        <item name="colorSecondary">#F2B807</item>
+        <item name="colorOnSecondary">#121212</item>
+        <!-- gewählte Chips und Umschalter: Bernstein gefüllt, dunkle Schrift (nie Weiß auf Bernstein) -->
+        <item name="colorSecondaryContainer">#F2A007</item>
+        <item name="colorOnSecondaryContainer">#121212</item>
+        <item name="colorTertiary">#D97A07</item>
+        <item name="colorOnTertiary">#121212</item>
+
+        <item name="android:colorBackground">#121212</item>
+        <item name="colorSurface">#121212</item>
+        <item name="colorOnSurface">#FFFFFF</item>
+        <item name="colorOnSurfaceVariant">#CCCCCC</item>
+        <item name="colorSurfaceVariant">#222222</item>
+        <item name="colorSurfaceContainerLowest">#0E0E0E</item>
+        <item name="colorSurfaceContainerLow">#161616</item>
+        <item name="colorSurfaceContainer">#181818</item>
+        <item name="colorSurfaceContainerHigh">#1C1C1C</item>
+        <item name="colorSurfaceContainerHighest">#222222</item>
+        <item name="colorOutline">#B07A12</item>
+        <item name="colorOutlineVariant">#383838</item>
+        <item name="colorError">#FF8A80</item>
+
+        <item name="fontFamily">@font/sofia_pro</item>
+        <item name="android:fontFamily">@font/sofia_pro</item>
+        <item name="textAppearanceDisplayLarge">@style/TextAppearance.Wetter.DisplayLarge</item>
+        <item name="textAppearanceDisplayMedium">@style/TextAppearance.Wetter.DisplayMedium</item>
+        <item name="textAppearanceDisplaySmall">@style/TextAppearance.Wetter.DisplaySmall</item>
+        <item name="textAppearanceHeadlineLarge">@style/TextAppearance.Wetter.HeadlineLarge</item>
+        <item name="textAppearanceHeadlineMedium">@style/TextAppearance.Wetter.HeadlineMedium</item>
+        <item name="textAppearanceHeadlineSmall">@style/TextAppearance.Wetter.HeadlineSmall</item>
+        <item name="textAppearanceTitleLarge">@style/TextAppearance.Wetter.TitleLarge</item>
+        <item name="textAppearanceTitleMedium">@style/TextAppearance.Wetter.TitleMedium</item>
+        <item name="textAppearanceTitleSmall">@style/TextAppearance.Wetter.TitleSmall</item>
+        <item name="textAppearanceBodyLarge">@style/TextAppearance.Wetter.BodyLarge</item>
+        <item name="textAppearanceBodyMedium">@style/TextAppearance.Wetter.BodyMedium</item>
+        <item name="textAppearanceBodySmall">@style/TextAppearance.Wetter.BodySmall</item>
+        <item name="textAppearanceLabelLarge">@style/TextAppearance.Wetter.LabelLarge</item>
+        <item name="textAppearanceLabelMedium">@style/TextAppearance.Wetter.LabelMedium</item>
+        <item name="textAppearanceLabelSmall">@style/TextAppearance.Wetter.LabelSmall</item>
+        <item name="sliderStyle">@style/Widget.Wetter.Slider</item>
+        <item name="materialButtonStyle">@style/Widget.Wetter.Button</item>
+    </style>
+
+    <!-- Regler: aktive Spur Bernstein, inaktive dunkel (sonst wäre sie über colorSecondaryContainer auch Bernstein) -->
+    <style name="Widget.Wetter.Slider" parent="Widget.Material3.Slider">
+        <item name="trackColorActive">#F2A007</item>
+        <item name="trackColorInactive">#3A3A3A</item>
+        <item name="thumbColor">#F2A007</item>
+        <item name="haloColor">#33F2A007</item>
+        <item name="tickVisible">false</item>
+    </style>
+
+    <!-- Haupt-Knopf wie die Website: Großbuchstaben, 1px Laufweite, SemiBold -->
+    <style name="Widget.Wetter.Button" parent="Widget.Material3.Button">
+        <item name="android:textAllCaps">true</item>
+        <item name="android:letterSpacing">0.04</item>
+    </style>
+
+    <!-- Chips als Pille wie auf der Website (radius-pill) -->
+    <style name="Widget.Wetter.Chip.Filter" parent="Widget.Material3.Chip.Filter">
+        <item name="chipCornerRadius">50dp</item>
+    </style>
+
+    <style name="Widget.Wetter.Chip.Assist" parent="Widget.Material3.Chip.Assist">
+        <item name="chipCornerRadius">50dp</item>
+    </style>
+
+    <style name="TextAppearance.Wetter.DisplayLarge" parent="TextAppearance.Material3.DisplayLarge">
+        <item name="fontFamily">@font/sofia_pro</item>
+        <item name="android:fontFamily">@font/sofia_pro</item>
+        <item name="android:textFontWeight">200</item>
+    </style>
+    <style name="TextAppearance.Wetter.DisplayMedium" parent="TextAppearance.Material3.DisplayMedium">
+        <item name="fontFamily">@font/sofia_pro</item>
+        <item name="android:fontFamily">@font/sofia_pro</item>
+        <item name="android:textFontWeight">200</item>
+    </style>
+    <style name="TextAppearance.Wetter.DisplaySmall" parent="TextAppearance.Material3.DisplaySmall">
+        <item name="fontFamily">@font/sofia_pro</item>
+        <item name="android:fontFamily">@font/sofia_pro</item>
+        <item name="android:textFontWeight">200</item>
+    </style>
+    <style name="TextAppearance.Wetter.HeadlineLarge" parent="TextAppearance.Material3.HeadlineLarge">
+        <item name="fontFamily">@font/sofia_pro</item>
+        <item name="android:fontFamily">@font/sofia_pro</item>
+        <item name="android:textFontWeight">300</item>
+    </style>
+    <style name="TextAppearance.Wetter.HeadlineMedium" parent="TextAppearance.Material3.HeadlineMedium">
+        <item name="fontFamily">@font/sofia_pro</item>
+        <item name="android:fontFamily">@font/sofia_pro</item>
+        <item name="android:textFontWeight">300</item>
+    </style>
+    <style name="TextAppearance.Wetter.HeadlineSmall" parent="TextAppearance.Material3.HeadlineSmall">
+        <item name="fontFamily">@font/sofia_pro</item>
+        <item name="android:fontFamily">@font/sofia_pro</item>
+        <item name="android:textFontWeight">300</item>
+    </style>
+    <style name="TextAppearance.Wetter.TitleLarge" parent="TextAppearance.Material3.TitleLarge">
+        <item name="fontFamily">@font/sofia_pro</item>
+        <item name="android:fontFamily">@font/sofia_pro</item>
+        <item name="android:textFontWeight">300</item>
+    </style>
+    <style name="TextAppearance.Wetter.TitleMedium" parent="TextAppearance.Material3.TitleMedium">
+        <item name="fontFamily">@font/sofia_pro</item>
+        <item name="android:fontFamily">@font/sofia_pro</item>
+        <item name="android:textFontWeight">400</item>
+    </style>
+    <style name="TextAppearance.Wetter.TitleSmall" parent="TextAppearance.Material3.TitleSmall">
+        <item name="fontFamily">@font/sofia_pro</item>
+        <item name="android:fontFamily">@font/sofia_pro</item>
+        <item name="android:textFontWeight">500</item>
+    </style>
+    <style name="TextAppearance.Wetter.BodyLarge" parent="TextAppearance.Material3.BodyLarge">
+        <item name="fontFamily">@font/sofia_pro</item>
+        <item name="android:fontFamily">@font/sofia_pro</item>
+        <item name="android:textFontWeight">300</item>
+    </style>
+    <style name="TextAppearance.Wetter.BodyMedium" parent="TextAppearance.Material3.BodyMedium">
+        <item name="fontFamily">@font/sofia_pro</item>
+        <item name="android:fontFamily">@font/sofia_pro</item>
+        <item name="android:textFontWeight">300</item>
+    </style>
+    <style name="TextAppearance.Wetter.BodySmall" parent="TextAppearance.Material3.BodySmall">
+        <item name="fontFamily">@font/sofia_pro</item>
+        <item name="android:fontFamily">@font/sofia_pro</item>
+        <item name="android:textFontWeight">300</item>
+    </style>
+    <style name="TextAppearance.Wetter.LabelLarge" parent="TextAppearance.Material3.LabelLarge">
+        <item name="fontFamily">@font/sofia_pro</item>
+        <item name="android:fontFamily">@font/sofia_pro</item>
+        <item name="android:textFontWeight">600</item>
+    </style>
+    <style name="TextAppearance.Wetter.LabelMedium" parent="TextAppearance.Material3.LabelMedium">
+        <item name="fontFamily">@font/sofia_pro</item>
+        <item name="android:fontFamily">@font/sofia_pro</item>
+        <item name="android:textFontWeight">500</item>
+    </style>
+    <style name="TextAppearance.Wetter.LabelSmall" parent="TextAppearance.Material3.LabelSmall">
+        <item name="fontFamily">@font/sofia_pro</item>
+        <item name="android:fontFamily">@font/sofia_pro</item>
+        <item name="android:textFontWeight">500</item>
+    </style>
+
+    <!-- Abschnittsüberschrift in den Einstellungen -->
+    <style name="Wetter.Section" parent="">
+        <item name="android:layout_width">wrap_content</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:layout_marginTop">20dp</item>
+        <item name="android:layout_marginBottom">6dp</item>
+        <item name="android:textAppearance">?attr/textAppearanceTitleSmall</item>
+        <item name="android:textColor">?attr/colorOnSurface</item>
+        <item name="android:accessibilityHeading">true</item>
+    </style>
+
+    <!-- Einstellungs-Panel: nur oben abgerundet, wie ein Bottom Sheet -->
+    <style name="ShapeAppearance.Wetter.TopRounded" parent="">
+        <item name="cornerFamily">rounded</item>
+        <item name="cornerSizeTopLeft">28dp</item>
+        <item name="cornerSizeTopRight">28dp</item>
+        <item name="cornerSizeBottomLeft">0dp</item>
+        <item name="cornerSizeBottomRight">0dp</item>
+    </style>
+
+    <!-- Erklärtext unter Bedienelementen -->
+    <style name="Wetter.Help" parent="">
+        <item name="android:layout_width">match_parent</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:textAppearance">?attr/textAppearanceBodySmall</item>
+        <item name="android:textColor">?attr/colorOnSurfaceVariant</item>
+    </style>
+</resources>
