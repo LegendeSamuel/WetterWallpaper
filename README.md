@@ -74,6 +74,7 @@ app/src/main/
 tools/
 ├── pc_harness/                        PC-Vorschau und Selbsttests der Bildverarbeitung
 └── split_layers.py                    Foto per Tiefe in Vorder- und Hintergrund zerlegen
+marketing/                             Video-Prompt und Reel für Social Media
 ```
 
 ## Tests ohne Handy
