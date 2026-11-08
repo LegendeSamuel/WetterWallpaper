@@ -138,7 +138,6 @@ final class WidgetParts {
                 int a = p.getAlpha();
                 q.setAlpha(Math.round(a * 0.35f));
                 c.drawArc(oval, 180, 180, false, q);
-                c.drawLine(x - s * 0.2f, top + h, x + w + s * 0.2f, top + h, q);
                 if (progress >= 0 && progress <= 1) {
                     q.setAlpha(a);
                     c.drawArc(oval, 180, 180 * progress, false, q);

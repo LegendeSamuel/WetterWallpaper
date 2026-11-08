@@ -285,6 +285,11 @@ final class InfoWidgets {
                 if (b(cfg, "showText", true)) c.add(t(rainText(f, n), 0.8f, up));
                 return c;
             }
+            case "widget_weather": { // weiteres Datum & Wetter
+                boolean night = SkyPosition.sun(d.now, d.lat, d.lon).elevation < -2;
+                String date = new SimpleDateFormat("EEE, d. MMM", Locale.GERMANY).format(new Date(d.now));
+                return c.add(t(date + "  " + d.wx.weatherSymbol(night) + " " + d.wx.temperatureText(), 1f, up));
+            }
             case "bigtemp": {
                 c.add(t(temp(d.wx.temperature), 2.6f, up));
                 StringBuilder sub = new StringBuilder();

@@ -110,7 +110,7 @@ final class WidgetManager {
         boolean hasWidget = settings.b("widget", "present", true);
         if (hasClock) chip("clock", "Uhr");
         // Rest in Zeichenreihenfolge: hinten zuerst
-        for (String id : ordered()) chip(id, name(id));
+        for (String id : ordered()) if (!"clock".equals(id)) chip(id, name(id));
         Chip add = (Chip) a.getLayoutInflater().inflate(R.layout.chip_action, bar, false);
         add.setText("Element");
         add.setCheckable(false);
@@ -149,14 +149,18 @@ final class WidgetManager {
         return InfoWidgets.name(settings.s(id, "type", "text"));
     }
 
-    /** Elemente über dem Motiv in Zeichenreihenfolge (hinten zuerst), wie der Renderer. */
+    /** Elemente in Zeichenreihenfolge (hinten zuerst), wie der Renderer; die Uhr ohne Platz ganz hinten. */
     List<String> ordered() {
         List<String> base = new java.util.ArrayList<>();
+        boolean clock = settings.b("clock", "present", true);
         if (settings.b("widget", "present", true)) base.add("widget");
         base.addAll(settings.widgetIds());
         List<String> out = new java.util.ArrayList<>();
-        for (String id : settings.order()) if (base.remove(id)) out.add(id);
+        for (String id : settings.order()) {
+            if (base.remove(id) || ("clock".equals(id) && clock && !out.contains(id))) out.add(id);
+        }
         out.addAll(base);
+        if (clock && !out.contains("clock")) out.add(0, "clock");
         return out;
     }
 
@@ -171,7 +175,7 @@ final class WidgetManager {
         int pad = a.dp(20);
         root.setPadding(pad, a.dp(8), pad, a.dp(28));
         root.addView(SheetKit.heading(a, "Reihenfolge"));
-        root.addView(SheetKit.help(a, "Am Griff ziehen. Oben liegt ganz vorn. Die Uhr liegt immer hinter dem Motiv und den Widgets."));
+        root.addView(SheetKit.help(a, "Am Griff ziehen. Oben liegt ganz vorn. Ganz unten liegt die Uhr hinter dem Motiv, weiter oben vor ihm wie ein Widget."));
         RecyclerView list = new RecyclerView(a);
         list.setLayoutManager(new LinearLayoutManager(a));
         RecyclerView.Adapter<RecyclerView.ViewHolder> adapter = new RecyclerView.Adapter<RecyclerView.ViewHolder>() {
@@ -230,7 +234,7 @@ final class WidgetManager {
             }
         }).attachToRecyclerView(list);
         root.addView(list);
-        if (front.isEmpty()) root.addView(SheetKit.help(a, "Noch keine Widgets über dem Motiv."));
+        if (front.isEmpty()) root.addView(SheetKit.help(a, "Noch keine Elemente im Bild."));
         d.setContentView(root);
         d.show();
     }
@@ -300,8 +304,13 @@ final class WidgetManager {
     // ---------- Hinzufügen / Entfernen ----------
 
     void addOrEnable(String type) {
-        if ("clock_digital".equals(type) || "clock_analog".equals(type)
-                || "clock_vertical".equals(type) || "clock_words".equals(type)) {
+        // gibt es Uhr bzw. Datum & Wetter schon, kommt ein weiteres als Widget dazu
+        boolean clockType = type.startsWith("clock_");
+        if ((clockType && isPresent("clock")) || ("widget_weather".equals(type) && isPresent("widget"))) {
+            add(type);
+            return;
+        }
+        if (clockType) {
             String style = type.substring("clock_".length());
             settings.put("clock", "present", true);
             settings.put("clock", "enabled", true);
@@ -325,21 +334,81 @@ final class WidgetManager {
     }
 
     void add(String type) {
+        add(type, null);
+    }
+
+    /**
+     * Neues Widget im Stil von from (null = Uhr, neu gestapelt; sonst Kopie unter from) als Startpunkt, aber nicht
+     * gekoppelt (der Schalter lässt sich bei Bedarf einschalten).
+     */
+    private void add(String type, String from) {
         List<String> ids = settings.widgetIds();
         String id = "w" + System.currentTimeMillis();
         settings.put(id, "type", type);
         settings.put(id, "enabled", true);
-        // neu: Stil der Uhr als Startpunkt, aber nicht gekoppelt (der Schalter lässt sich bei Bedarf einschalten)
-        settings.copyKeys("clock", id, WallpaperRenderer.LINK_KEYS);
+        String style = from == null ? "clock" : from;
+        // Datum & Wetter kann an der Uhr hängen, dann kommt sein Stil von dort
+        settings.copyKeys(settings.b(style, "linkClock", false) ? "clock" : style, id, WallpaperRenderer.LINK_KEYS);
         settings.put(id, "linkClock", false);
-        settings.put(id, "xPct", 50);
-        settings.put(id, "yPct", 50 + 7 * (ids.size() % 6));
+        if (from == null) {
+            settings.put(id, "xPct", 50);
+            settings.put(id, "yPct", 50 + 7 * (ids.size() % 6));
+        } else {
+            settings.copyKeys(from, id, new String[]{"align", "uppercase", "rotation"});
+            placeBelow(id, from);
+        }
         ids.add(id);
         settings.setWidgetIds(ids);
         a.changed();
         selected = id;
         buildChips();
         if ("event".equals(type) && !DeviceInfo.calendarGranted(a)) a.requestCalendar();
+    }
+
+    /** Kopie mit allen Einstellungen, etwas unter dem Original; Uhr und Datum & Wetter werden ein Widget im selben Stil. */
+    void duplicate(String id) {
+        if (id == null) return;
+        if (!isInfo(id)) {
+            add("clock".equals(id) ? "clock_" + settings.s("clock", "style", "digital") : "widget_weather", id);
+            return;
+        }
+        String copy = "w" + System.currentTimeMillis();
+        try {
+            JSONObject src = new JSONObject(settings.sec(id).toString()); // tiefe Kopie, Listen nicht teilen
+            for (java.util.Iterator<String> it = src.keys(); it.hasNext(); ) {
+                String k = it.next();
+                settings.put(copy, k, src.get(k));
+            }
+        } catch (org.json.JSONException e) {
+            throw new IllegalStateException(e);
+        }
+        settings.put(copy, "enabled", true); // auch die Kopie eines ausgeblendeten Widgets ist sichtbar
+        placeBelow(copy, id);
+        List<String> ids = settings.widgetIds();
+        ids.add(copy);
+        settings.setWidgetIds(ids);
+        a.changed();
+        selected = copy;
+        buildChips();
+    }
+
+    /** Gleiche Spalte wie from, eine Zeile darunter (am unteren Rand darüber). */
+    private void placeBelow(String id, String from) {
+        float[] p = a.preview().position(from);
+        if (p == null) p = new float[]{(float) settings.d(from, "xPct", 50), (float) settings.d(from, "yPct", 55)};
+        settings.put(id, "xPct", Math.round(p[0] * 10) / 10.0);
+        settings.put(id, "yPct", Math.round((p[1] > 85 ? p[1] - 7 : p[1] + 7) * 10) / 10.0);
+    }
+
+    /** Andere Widget-Art, Stil und Platz bleiben. */
+    private void changeType(String id) {
+        showGallery("Widget wechseln", type -> {
+            settings.put(id, "type", type);
+            a.changed();
+            dropPanel(id);
+            buildChips();
+            if ("event".equals(type) && !DeviceInfo.calendarGranted(a)) a.requestCalendar();
+        });
     }
 
     void confirmRemove(String id) {
@@ -418,6 +487,12 @@ final class WidgetManager {
             o.addView(grant);
         }
         for (InfoWidgets.Opt opt : InfoWidgets.options(type)) o.addView(control(id, opt));
+        MaterialButton swap = new MaterialButton(a, null, com.google.android.material.R.attr.materialButtonOutlinedStyle);
+        swap.setText("Anderes Widget, gleicher Stil");
+        swap.setOnClickListener(v -> changeType(id));
+        LinearLayout.LayoutParams slp = new LinearLayout.LayoutParams(-2, -2);
+        slp.topMargin = a.dp(10);
+        o.addView(swap, slp);
         MaterialButton rm = new MaterialButton(a, null, com.google.android.material.R.attr.materialButtonOutlinedStyle);
         rm.setText("Widget entfernen");
         rm.setOnClickListener(v -> confirmRemove(id));
@@ -478,6 +553,7 @@ final class WidgetManager {
                 });
                 line.addView(name);
                 line.addView(s, new LinearLayout.LayoutParams(0, -2, 1));
+                line.addView(SliderInput.value(s, null));
                 return line;
             }
             default: { // text
@@ -521,6 +597,11 @@ final class WidgetManager {
     // ---------- Galerie ----------
 
     void showGallery() {
+        showGallery("Widgets", this::addOrEnable);
+    }
+
+    /** Galerie aller Widget-Arten. */
+    private void showGallery(String heading, java.util.function.Consumer<String> pick) {
         BottomSheetDialog d = new BottomSheetDialog(a);
         a.glassify(d);
         LinearLayout root = new LinearLayout(a);
@@ -528,7 +609,7 @@ final class WidgetManager {
         int pad = a.dp(20);
         root.setPadding(pad, a.dp(4), pad, a.dp(28));
         TextView title = new TextView(a);
-        title.setText("Widgets");
+        title.setText(heading);
         title.setTextAppearance(R.style.TextAppearance_Wetter_TitleLarge);
         title.setTextColor(MaterialColors.getColor(bar, com.google.android.material.R.attr.colorPrimary));
         root.addView(title);
@@ -567,7 +648,7 @@ final class WidgetManager {
                 }
                 row.addView(card(t, () -> {
                     d.dismiss();
-                    addOrEnable(t[0]);
+                    pick.accept(t[0]);
                 }), new LinearLayout.LayoutParams(0, -2, 1));
                 n++;
             }
