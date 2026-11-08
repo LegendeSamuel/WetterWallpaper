@@ -37,13 +37,12 @@ public final class PreviewView extends View {
         void onSelected(String id);
         /** Freie Stelle angetippt (kein Ziehen). */
         void onEmptyTap();
-        /** Element in den Mülleimer gezogen. */
-        void onDelete(String id);
         /** Mit zwei Fingern skaliert und verschoben (Größe in % der Bildbreite). */
         void onResized(String id, float sizePct, float xPct, float yPct, float rotation);
     }
 
-    private static final float SNAP_PCT = 3f;
+    /** Einrasten an Ausrichtungslinien: Abstand in % der Bildbreite. */
+    private static final float SNAP_PCT = 2f;
 
 
     private final ExecutorService loader = Executors.newSingleThreadExecutor();
@@ -83,7 +82,14 @@ public final class PreviewView extends View {
     private String dragId;
     private DeviceInfo device;
     private final InfoWidgets.Data widgetData = new InfoWidgets.Data();
-    private boolean snapped;
+    /** Ausrichtungslinien beim Ziehen: Kanten und Mitten der anderen Elemente, Bildmitte; NaN = keine sichtbar. */
+    private final java.util.List<Float> linesX = new java.util.ArrayList<>();
+    private final java.util.List<Float> linesY = new java.util.ArrayList<>();
+    private RectF dragBox0;
+    private float[] dragPos0;
+    private float guideX = Float.NaN;
+    private float guideY = Float.NaN;
+    private final Paint guide = new Paint(Paint.ANTI_ALIAS_FLAG);
     private float dragDx;
     private float dragDy;
     private boolean emptyTap;
@@ -98,11 +104,6 @@ public final class PreviewView extends View {
     private Runnable onBackdrop;
     private final Runnable makeBackdrop = this::renderBackdrop;
 
-    private boolean hoveringTrash;
-    private final Paint trashBg = new Paint(Paint.ANTI_ALIAS_FLAG);
-    private final Paint trashText = new Paint(Paint.ANTI_ALIAS_FLAG);
-    private android.graphics.drawable.Drawable trashIcon;
-
     public PreviewView(Context ctx, AttributeSet attrs) {
         super(ctx, attrs);
         device = new DeviceInfo(ctx);
@@ -113,13 +114,11 @@ public final class PreviewView extends View {
         outline.setColor(0xE6FFFFFF);
         outline.setPathEffect(new DashPathEffect(new float[]{6 * d, 4 * d}, 0));
         outline.setShadowLayer(2 * d, 0, 0, 0x99000000);
-
-        trashIcon = androidx.core.content.ContextCompat.getDrawable(ctx, R.drawable.ic_delete);
-        if (trashIcon != null) trashIcon.setTint(0xFFFFFFFF);
-        trashText.setColor(0xFFFFFFFF);
-        trashText.setTextSize(14f * d);
-        trashText.setTypeface(android.graphics.Typeface.create("sans-serif-medium", android.graphics.Typeface.NORMAL));
-        trashText.setTextAlign(Paint.Align.LEFT);
+        guide.setStyle(Paint.Style.STROKE);
+        guide.setStrokeWidth(1f * d);
+        guide.setColor(0xD94FC3F7);
+        guide.setPathEffect(new DashPathEffect(new float[]{4 * d, 3 * d}, 0));
+        guide.setShadowLayer(1.5f * d, 0, 0, 0x80000000);
 
         Location l = LocationHelper.lastKnown(ctx, this::useLocation);
         if (l != null) useLocation(l);
@@ -409,7 +408,8 @@ public final class PreviewView extends View {
             }
         }
         if (dragId != null) {
-            drawTrashZone(c);
+            if (!Float.isNaN(guideX)) c.drawLine(guideX, 0, guideX, getHeight(), guide);
+            if (!Float.isNaN(guideY)) c.drawLine(0, guideY, getWidth(), guideY, guide);
         }
         postInvalidateDelayed(delay > 0 ? delay : 1000 - now % 1000);
     }
@@ -478,7 +478,7 @@ public final class PreviewView extends View {
                 float[] pos = renderer.position(hit);
                 dragDx = pos[0] / 100 * getWidth() - e.getX();
                 dragDy = pos[1] / 100 * getHeight() - e.getY();
-                snapped = false;
+                startGuides(hit, sceneTime(now), previewWeather());
                 if (listener != null) listener.onSelected(hit);
                 getParent().requestDisallowInterceptTouchEvent(true);
                 return true;
@@ -490,7 +490,6 @@ public final class PreviewView extends View {
                 pinchId = id;
                 dragId = null;
                 emptyTap = false;
-                hoveringTrash = false;
                 pinchDist0 = Math.max(1f, distance(e));
                 pinchSize0 = renderer.sizePct(id);
                 pinchFx0 = (e.getX(0) + e.getX(1)) / 2;
@@ -528,18 +527,21 @@ public final class PreviewView extends View {
                 if (pinchDone) return true;
                 if (emptyTap && Math.hypot(e.getX() - downX, e.getY() - downY) > getWidth() * 0.03f) emptyTap = false;
                 if (dragId == null) return emptyTap;
-                RectF tb = trashBox();
-                boolean hovering = tb.contains(e.getX(), e.getY()) || e.getY() < tb.bottom;
-                if (hovering != hoveringTrash) {
-                    hoveringTrash = hovering;
-                    if (hovering) performHapticFeedback(HapticFeedbackConstants.CLOCK_TICK);
-                }
                 float xPct = clampPct((e.getX() + dragDx) / getWidth() * 100, 5, 95);
                 float yPct = clampPct((e.getY() + dragDy) / getHeight() * 100, 5, 97);
-                boolean snap = Math.abs(xPct - 50) < SNAP_PCT;
-                if (snap) xPct = 50;
-                if (snap && !snapped) performHapticFeedback(HapticFeedbackConstants.CLOCK_TICK);
-                snapped = snap;
+                // Fläche verschiebt sich mit der Position: Kanten und Mitte an den Linien einrasten
+                float dx = (xPct - dragPos0[0]) / 100 * getWidth();
+                float dy = (yPct - dragPos0[1]) / 100 * getHeight();
+                float max = getWidth() * SNAP_PCT / 100;
+                float[] sx = Guides.snap(new float[]{dragBox0.left + dx, dragBox0.centerX() + dx, dragBox0.right + dx}, linesX, max);
+                float[] sy = Guides.snap(new float[]{dragBox0.top + dy, dragBox0.centerY() + dy, dragBox0.bottom + dy}, linesY, max);
+                if (sx != null) xPct += sx[0] / getWidth() * 100;
+                if (sy != null) yPct += sy[0] / getHeight() * 100;
+                float gx = sx != null ? sx[1] : Float.NaN;
+                float gy = sy != null ? sy[1] : Float.NaN;
+                if ((sx != null && gx != guideX) || (sy != null && gy != guideY)) performHapticFeedback(HapticFeedbackConstants.CLOCK_TICK);
+                guideX = gx;
+                guideY = gy;
                 renderer.setPosition(dragId, xPct, yPct);
                 invalidate();
                 return true;
@@ -564,17 +566,6 @@ public final class PreviewView extends View {
                     if (tap && listener != null) listener.onEmptyTap();
                     return tap;
                 }
-                if (hoveringTrash && e.getActionMasked() == MotionEvent.ACTION_UP) {
-                    String del = dragId;
-                    dragId = null;
-                    hoveringTrash = false;
-                    performHapticFeedback(HapticFeedbackConstants.CONFIRM);
-                    if (listener != null) listener.onDelete(del);
-                    invalidate();
-                    scheduleBackdrop();
-                    return true;
-                }
-                hoveringTrash = false;
                 if (listener != null) {
                     float[] pos = renderer.position(dragId);
                     listener.onMoved(dragId, pos[0], pos[1]);
@@ -608,6 +599,25 @@ public final class PreviewView extends View {
         return hit;
     }
 
+    /** Linien für das Ziehen von id: Bildmitte sowie Kanten und Mitten aller anderen sichtbaren Elemente. */
+    private void startGuides(String id, long time, Weather wx) {
+        dragPos0 = renderer.position(id);
+        dragBox0 = new RectF(renderer.elementBox(id, time, wx));
+        linesX.clear();
+        linesY.clear();
+        linesX.add(getWidth() / 2f);
+        linesY.add(getHeight() / 2f);
+        for (String other : renderer.elementIds()) {
+            if (other.equals(id)) continue;
+            RectF b = renderer.elementBox(other, time, wx);
+            if (b.isEmpty()) continue;
+            java.util.Collections.addAll(linesX, b.left, b.centerX(), b.right);
+            java.util.Collections.addAll(linesY, b.top, b.centerY(), b.bottom);
+        }
+        guideX = Float.NaN;
+        guideY = Float.NaN;
+    }
+
     /** Geste fertig: Größe und Position melden; bis alle Finger weg sind, nichts mehr verschieben. */
     private void finishPinch() {
         String id = pinchId;
@@ -625,45 +635,6 @@ public final class PreviewView extends View {
 
     private static float distance(MotionEvent e) {
         return (float) Math.hypot(e.getX(0) - e.getX(1), e.getY(0) - e.getY(1));
-    }
-
-    private RectF trashBox() {
-        float d = getResources().getDisplayMetrics().density;
-        float w = Math.min(getWidth() * 0.72f, 260 * d);
-        float h = 48 * d;
-        float top = 72 * d;
-        float left = (getWidth() - w) / 2f;
-        return new RectF(left, top, left + w, top + h);
-    }
-
-    private void drawTrashZone(Canvas c) {
-        RectF tb = new RectF(trashBox());
-        float d = getResources().getDisplayMetrics().density;
-        if (hoveringTrash) {
-            tb.inset(-4 * d, -4 * d);
-            trashBg.setColor(0xEEFF3B30); // Vivid Red
-            trashBg.setStyle(Paint.Style.FILL);
-            c.drawRoundRect(tb, tb.height() / 2f, tb.height() / 2f, trashBg);
-        } else {
-            trashBg.setColor(0xCC1A1A1A); // Dark Glass
-            trashBg.setStyle(Paint.Style.FILL);
-            c.drawRoundRect(tb, tb.height() / 2f, tb.height() / 2f, trashBg);
-            trashBg.setColor(0x44FFFFFF);
-            trashBg.setStyle(Paint.Style.STROKE);
-            trashBg.setStrokeWidth(1.5f * d);
-            c.drawRoundRect(tb, tb.height() / 2f, tb.height() / 2f, trashBg);
-        }
-        String msg = hoveringTrash ? "Loslassen zum Entfernen" : "Hierher ziehen zum Entfernen";
-        float iconSize = 22 * d;
-        float textW = trashText.measureText(msg);
-        float totalW = iconSize + 8 * d + textW;
-        float startX = tb.centerX() - totalW / 2f;
-        float iconTop = tb.centerY() - iconSize / 2f;
-        if (trashIcon != null) {
-            trashIcon.setBounds((int) startX, (int) iconTop, (int) (startX + iconSize), (int) (iconTop + iconSize));
-            trashIcon.draw(c);
-        }
-        c.drawText(msg, startX + iconSize + 8 * d, tb.centerY() + 5 * d, trashText);
     }
 
     private static float distSq(float x1, float y1, float x2, float y2) {

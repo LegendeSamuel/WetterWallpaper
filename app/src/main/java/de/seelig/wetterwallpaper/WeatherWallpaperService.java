@@ -58,7 +58,7 @@ public class WeatherWallpaperService extends WallpaperService {
     };
 
     private static synchronized Future<Scene> sharedScene(File dir, WallpaperRenderer.SceneParams params, long imageStamp) {
-        String key = imageStamp + "|" + params.key();
+        String key = dir + "|" + imageStamp + "|" + params.key();
         Future<Scene> f = SCENES.get(key);
         if (f == null) {
             f = SCENE_LOADER.submit(() -> {
@@ -86,7 +86,7 @@ public class WeatherWallpaperService extends WallpaperService {
         private final ExecutorService loader = Executors.newSingleThreadExecutor();
         private final long startMillis = System.currentTimeMillis();
         private WallpaperRenderer renderer;
-        private long configStamp = -1;
+        private String configStamp = "";
         private long imageStamp = -1;
         private String sceneKey = "";
         /** Modus, zu dem die geladene Szene gehört. */
@@ -116,10 +116,16 @@ public class WeatherWallpaperService extends WallpaperService {
         public void onSurfaceChanged(SurfaceHolder holder, int format, int w, int h) {
             renderer = new WallpaperRenderer(w, h);
             renderer.setScreen(screen());
-            configStamp = -1;
+            configStamp = "";
             imageStamp = -1;
             sceneKey = "";
             drawFrame();
+        }
+
+        /** Gespeicherter Stand dieses Bildschirms; die System-Vorschau beim Festlegen zeigt den Stand der App. */
+        private File dataDir() {
+            File app = getExternalFilesDir(null);
+            return app == null || isPreview() ? app : Published.forScreen(app, screen());
         }
 
         /** Nur Startbildschirm = "home"; Sperrbildschirm oder beide zusammen = "lock" (die Grundlage). */
@@ -166,10 +172,10 @@ public class WeatherWallpaperService extends WallpaperService {
 
         /** Einstellungen sofort übernehmen; Ebenen nur neu berechnen, wenn Bild oder bildrelevante Werte sich ändern. */
         private void reloadIfChanged() {
-            File dir = getExternalFilesDir(null);
+            File dir = dataDir();
             if (dir == null) return;
-            long cfg = new File(dir, Settings.FILE).lastModified();
-            if (cfg != configStamp) {
+            String cfg = dir + "|" + new File(dir, Settings.FILE).lastModified();
+            if (!cfg.equals(configStamp)) {
                 configStamp = cfg;
                 JSONObject raw = Settings.read(dir);
                 Settings.migrate(raw);
@@ -249,7 +255,7 @@ public class WeatherWallpaperService extends WallpaperService {
         }
 
         private void prefetch() {
-            File dir = getExternalFilesDir(null);
+            File dir = dataDir();
             if (dir == null || renderer == null || nextChange <= 0) return;
             String mode = renderer.liveMode(nextChange + 60_000L, la(), lo());
             WallpaperRenderer.SceneParams params = renderer.sceneParamsFor(mode, 0);

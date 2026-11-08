@@ -155,13 +155,13 @@ final class EffectTools {
     private void fillOptions(LinearLayout o, String fill) {
         switch (fill) {
             case "gradient":
-                help(o, "Farbpunkte: antippen zum Ändern, lange drücken zum Entfernen, + für einen weiteren (bis 8).");
                 stops(o, "gradientColors");
                 slider(o, "Richtung", "gradientAngle", 0, 360, "°");
                 break;
             case "glass":
+                slider(o, "Unschärfe", "glassBlur", 0, 100, "%");
                 slider(o, "Milchig", "glassFrost", 0, 100, "%");
-                help(o, "0 % = klares Glas, nach rechts wird es milchiger.");
+                help(o, "Unschärfe: wie verschwommen das Bild hinter dem Glas ist. Milchig: 0 % = klares Glas, nach rechts wird es weißlicher.");
                 slider(o, "Kante", "glassEdge", 0, 100, "%");
                 gradientOverlay(o);
                 break;
@@ -187,6 +187,7 @@ final class EffectTools {
                 slider(o, "Richtung", "outlineGradientAngle", 0, 360, TextLayer.fx("gradientAngle"), "°");
                 break;
             case "glass":
+                slider(o, "Unschärfe", "outlineGlassBlur", 0, 100, TextLayer.fx("glassBlur"), "%");
                 slider(o, "Milchig", "outlineGlassFrost", 0, 100, TextLayer.fx("glassFrost"), "%");
                 break;
             case "photo":
@@ -236,46 +237,124 @@ final class EffectTools {
         }
     }
 
-    /** Farbpunkte des Verlaufs als Kreise; der erste ist anfangs die Schriftfarbe ("text"). */
-    private void stops(LinearLayout o, String key) {
-        java.util.List<String> list = new java.util.ArrayList<>();
-        org.json.JSONArray a = settings.array(sec, key);
-        if (a != null && a.length() >= 2) for (int i = 0; i < a.length(); i++) list.add(a.optString(i, "text"));
-        else {
-            list.add("text");
-            list.add(settings.s(sec, "gradientColor", "#BFD8FF").equals("auto") ? "#BFD8FF" : settings.s(sec, "gradientColor", "#BFD8FF"));
+    /** Farbpunkt eines Verlaufs: Farbe ("text" = Schriftfarbe), Position und Weichheit zum nächsten Punkt (je 0..1). */
+    private static final class Stop {
+        String color;
+        float pos;
+        float soft;
+
+        Stop(String color, float pos, float soft) {
+            this.color = color;
+            this.pos = pos;
+            this.soft = soft;
         }
+
+        int shown() {
+            return "text".equals(color) ? 0xFFEEF2FA : TextLayer.parseColor(color, 0xFFFFFFFF);
+        }
+    }
+
+    /**
+     * Verlauf bearbeiten: Leiste mit ziehbaren Punkten, darunter die Farbpunkte als Kreise (der erste ist anfangs die
+     * Schriftfarbe) und für den gewählten Punkt Position und Weichheit des Übergangs zum nächsten.
+     * key = Farbschlüssel (gradientColors …); Positionen und Weichheit stehen unter …Stops und …Soft.
+     */
+    private void stops(LinearLayout o, String key) {
+        String posKey = key.replace("Colors", "Stops");
+        String softKey = key.replace("Colors", "Soft");
+        List<String> colors = new ArrayList<>();
+        org.json.JSONArray a = settings.array(sec, key);
+        if (a != null && a.length() >= 2) for (int i = 0; i < Math.min(8, a.length()); i++) colors.add(a.optString(i, "text"));
+        else {
+            colors.add("text");
+            colors.add(settings.s(sec, "gradientColor", "#BFD8FF").equals("auto") ? "#BFD8FF" : settings.s(sec, "gradientColor", "#BFD8FF"));
+        }
+        float[] pos = GradientStops.positions(TextLayer.fractions(settings.array(sec, posKey)), colors.size());
+        float[] soft = GradientStops.softness(TextLayer.fractions(settings.array(sec, softKey)), colors.size());
+        List<Stop> list = new ArrayList<>();
+        for (int i = 0; i < colors.size(); i++) list.add(new Stop(colors.get(i), pos[i], soft[i]));
+        int[] sel = {0};
+
+        help(o, "Punkte auf der Leiste ziehen. Kreise darunter: antippen ändert die Farbe, lange drücken entfernt, + fügt einen Punkt hinzu (bis 8).");
+        GradientBar bar = new GradientBar(activity);
+        o.addView(bar, new LinearLayout.LayoutParams(-1, activity.dp(44)));
         HorizontalScrollView scroll = new HorizontalScrollView(activity);
         scroll.setHorizontalScrollBarEnabled(false);
         LinearLayout row = new LinearLayout(activity);
         row.setGravity(Gravity.CENTER_VERTICAL);
-        row.setPadding(0, activity.dp(8), 0, activity.dp(4));
+        row.setPadding(0, activity.dp(4), 0, activity.dp(4));
         scroll.addView(row);
         o.addView(scroll);
+        Slider position = plainSlider(o, "Position", 0, 100, "%");
+        Slider softness = plainSlider(o, "Weichheit", 0, 100, "%");
+        TextView softHelp = help(o, "Weichheit: Übergang zum nächsten Punkt, 0 % = harte Kante.");
+
+        Runnable save = () -> {
+            List<String> c = new ArrayList<>();
+            List<Double> p = new ArrayList<>();
+            List<Integer> s = new ArrayList<>();
+            for (Stop st : list) {
+                c.add(st.color);
+                p.add(Math.round(st.pos * 1000) / 10.0);
+                s.add(Math.round(st.soft * 100));
+            }
+            settings.put(sec, key, new org.json.JSONArray(c));
+            settings.put(sec, posKey, new org.json.JSONArray(p));
+            put(softKey, new org.json.JSONArray(s));
+        };
         Runnable[] redraw = new Runnable[1];
+        // Punkt verschieben; überholt er einen Nachbarn, rückt er in der Reihenfolge weiter (die Wahl wandert mit)
+        java.util.function.Consumer<Float> move = p -> {
+            Stop st = list.get(sel[0]);
+            st.pos = p;
+            list.sort((x, y) -> Float.compare(x.pos, y.pos));
+            sel[0] = list.indexOf(st);
+            save.run();
+            redraw[0].run();
+        };
         redraw[0] = () -> {
+            int n = list.size();
+            int[] shown = new int[n];
+            float[] ps = new float[n];
+            float[] ss = new float[n];
+            for (int i = 0; i < n; i++) {
+                shown[i] = list.get(i).shown();
+                ps[i] = list.get(i).pos;
+                ss[i] = list.get(i).soft;
+            }
+            bar.set(shown, ps, ss, sel[0]);
+            Stop cur = list.get(sel[0]);
+            position.setValue(Math.round(cur.pos * 100));
+            softness.setValue(Math.round(cur.soft * 100));
+            boolean hasNext = sel[0] < n - 1;
+            ((View) softness.getParent()).setVisibility(hasNext ? View.VISIBLE : View.GONE);
+            softHelp.setVisibility(hasNext ? View.VISIBLE : View.GONE);
             row.removeAllViews();
             int size = activity.dp(34);
-            for (int i = 0; i < list.size(); i++) {
-                final int idx = i;
-                String v = list.get(i);
-                int col = "text".equals(v) ? 0xFFEEF2FA : TextLayer.parseColor(v, 0xFFFFFFFF);
+            for (int i = 0; i < n; i++) {
+                Stop st = list.get(i);
+                boolean text = "text".equals(st.color);
                 View dot = new View(activity);
                 android.graphics.drawable.GradientDrawable d = new android.graphics.drawable.GradientDrawable();
                 d.setShape(android.graphics.drawable.GradientDrawable.OVAL);
-                d.setColor(col);
-                d.setStroke(activity.dp("text".equals(v) ? 3 : 1), 0x80FFFFFF);
+                d.setColor(st.shown());
+                d.setStroke(activity.dp(i == sel[0] || text ? 3 : 1), i == sel[0] ? 0xFFF2A007 : 0x80FFFFFF);
                 dot.setBackground(d);
-                dot.setContentDescription("Farbpunkt " + (i + 1) + ("text".equals(v) ? ", Schriftfarbe" : ""));
-                dot.setOnClickListener(x -> ColorPicker.show(activity, col, c -> {
-                    list.set(idx, String.format(java.util.Locale.ROOT, "#%06X", c & 0xFFFFFF));
-                    saveStops(list, key);
+                dot.setContentDescription("Farbpunkt " + (i + 1) + (text ? ", Schriftfarbe" : "") + (i == sel[0] ? ", gewählt" : ""));
+                dot.setOnClickListener(x -> {
+                    sel[0] = list.indexOf(st);
                     redraw[0].run();
-                }));
+                    ColorPicker.show(activity, st.shown(), c -> {
+                        st.color = String.format(java.util.Locale.ROOT, "#%06X", c & 0xFFFFFF);
+                        save.run();
+                        redraw[0].run();
+                    });
+                });
                 dot.setOnLongClickListener(x -> {
                     if (list.size() > 2) {
-                        list.remove(idx);
-                        saveStops(list, key);
+                        list.remove(st);
+                        sel[0] = Math.min(sel[0], list.size() - 1);
+                        save.run();
                         redraw[0].run();
                     }
                     return true;
@@ -284,7 +363,7 @@ final class EffectTools {
                 lp.setMarginEnd(activity.dp(10));
                 row.addView(dot, lp);
             }
-            if (list.size() < 8) {
+            if (n < 8) {
                 TextView plus = new TextView(activity);
                 plus.setText("+");
                 plus.setTextSize(20);
@@ -295,27 +374,50 @@ final class EffectTools {
                 d.setStroke(activity.dp(1), 0x80FFFFFF);
                 plus.setBackground(d);
                 plus.setOnClickListener(x -> {
-                    String last = list.get(list.size() - 1);
-                    list.add("text".equals(last) ? "#FFFFFF" : last);
-                    saveStops(list, key);
+                    // in die größte Lücke, Farbe und Weichheit vom linken Nachbarn
+                    int gap = GradientStops.widestGap(ps);
+                    Stop left = list.get(gap);
+                    list.add(gap + 1, new Stop("text".equals(left.color) ? "#FFFFFF" : left.color,
+                            (left.pos + list.get(gap + 1).pos) / 2, left.soft));
+                    sel[0] = gap + 1;
+                    save.run();
                     redraw[0].run();
                 });
                 row.addView(plus, new LinearLayout.LayoutParams(size, size));
             }
         };
+        bar.setListener(new GradientBar.Listener() {
+            @Override
+            public void onSelect(int index) {
+                sel[0] = index;
+                redraw[0].run();
+            }
+
+            @Override
+            public void onDrag(int index, float p) {
+                sel[0] = index;
+                move.accept(p);
+            }
+        });
+        position.addOnChangeListener((sl, v, fromUser) -> {
+            if (fromUser) move.accept(v / 100f);
+        });
+        softness.addOnChangeListener((sl, v, fromUser) -> {
+            if (!fromUser) return;
+            list.get(sel[0]).soft = v / 100f;
+            save.run();
+            redraw[0].run();
+        });
         redraw[0].run();
     }
 
-    private void saveStops(java.util.List<String> list, String key) {
-        put(key, new org.json.JSONArray(list));
-    }
-
-    private void help(LinearLayout o, String text) {
+    private TextView help(LinearLayout o, String text) {
         TextView t = new TextView(activity);
         t.setText(text);
         t.setTextAppearance(R.style.TextAppearance_Wetter_BodySmall);
         t.setPadding(0, activity.dp(6), 0, activity.dp(2));
         o.addView(t);
+        return t;
     }
 
     private void color(LinearLayout o, String key, String autoLabel) {
@@ -335,8 +437,17 @@ final class EffectTools {
         slider(o, label, key, from, to, TextLayer.fx(key), unit);
     }
 
-    /** Beschrifteter Regler; der Wert erscheint beim Ziehen. */
+    /** Beschrifteter Regler für einen Schlüssel; der Wert erscheint beim Ziehen und lässt sich eintippen. */
     private void slider(LinearLayout o, String label, String key, int from, int to, int def, String unit) {
+        Slider s = plainSlider(o, label, from, to, unit);
+        s.setValue(Math.max(from, Math.min(to, Math.round(settings.d(sec, key, def)))));
+        s.addOnChangeListener((sl, v, fromUser) -> {
+            if (fromUser) put(key, Math.round(v));
+        });
+    }
+
+    /** Zeile [Name | Regler | Zahl] ohne eigenen Schlüssel; der Regler liegt in der Zeile (getParent()). */
+    private Slider plainSlider(LinearLayout o, String label, int from, int to, String unit) {
         LinearLayout line = new LinearLayout(activity);
         line.setGravity(Gravity.CENTER_VERTICAL);
         TextView name = new TextView(activity);
@@ -349,13 +460,11 @@ final class EffectTools {
         s.setStepSize(1);
         s.setTickVisible(false);
         s.setContentDescription(label);
-        s.setValue(Math.max(from, Math.min(to, Math.round(settings.d(sec, key, def)))));
         s.setLabelFormatter(v -> Math.round(v) + " " + unit);
-        s.addOnChangeListener((sl, v, fromUser) -> {
-            if (fromUser) put(key, Math.round(v));
-        });
         line.addView(name);
         line.addView(s, new LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1));
+        line.addView(SliderInput.value(s, null));
         o.addView(line);
+        return s;
     }
 }

@@ -227,6 +227,8 @@ final class WallpaperRenderer {
             JSONObject own = section(id);
             if (!own.has("type")) continue;
             JSONObject eff = infoStyle(own, clock);
+            String type = own.optString("type");
+            if (isClockType(type)) putQuiet(eff, "style", type.substring("clock_".length()));
             infoCfg.put(id, eff);
             infoText.computeIfAbsent(id, k -> new TextLayer(TextLayer.WIDGET_SHADOW))
                     .apply(eff, configDir, "sans-serif-medium", InfoWidgets.defaultSize(own.optString("type")), width);
@@ -259,12 +261,9 @@ final class WallpaperRenderer {
 
     // ---------- Elemente (Uhr, Datum & Wetter, Info-Widgets) für die Vorschau ----------
 
-    /** Sichtbare Elemente in Zeichenreihenfolge (die Uhr liegt immer hinter dem Motiv, also zuerst). */
+    /** Sichtbare Elemente in Zeichenreihenfolge. */
     java.util.List<String> elementIds() {
-        java.util.List<String> ids = new java.util.ArrayList<>();
-        if (shown(section("clock"))) ids.add("clock");
-        ids.addAll(drawOrder());
-        return ids;
+        return drawOrder();
     }
 
     /** Eingeblendet und nicht entfernt (Uhr und Datum & Wetter werden beim Entfernen nur als "present": false markiert). */
@@ -272,9 +271,10 @@ final class WallpaperRenderer {
         return s.optBoolean("enabled", true) && s.optBoolean("present", true);
     }
 
-    /** Elemente über dem Motiv von hinten nach vorn: gespeicherte Reihenfolge, neue Elemente vorn. */
+    /** Elemente von hinten nach vorn: gespeicherte Reihenfolge, neue Elemente vorn, die Uhr ohne Platz ganz hinten. */
     java.util.List<String> drawOrder() {
         java.util.List<String> base = new java.util.ArrayList<>();
+        boolean clock = shown(section("clock"));
         if (shown(section("widget"))) base.add("widget");
         for (java.util.Map.Entry<String, JSONObject> e : infoCfg.entrySet()) {
             if (e.getValue().optBoolean("enabled", true)) base.add(e.getKey());
@@ -283,10 +283,17 @@ final class WallpaperRenderer {
         org.json.JSONArray order = config.optJSONArray("order");
         for (int i = 0; order != null && i < order.length(); i++) {
             String id = order.optString(i);
-            if (base.remove(id)) out.add(id);
+            if (base.remove(id) || ("clock".equals(id) && clock && !out.contains(id))) out.add(id);
         }
         out.addAll(base);
+        if (clock && !out.contains("clock")) out.add(0, "clock");
         return out;
+    }
+
+    /** Liegt die Uhr ganz hinten, steht sie wie bisher hinter dem ganzen Motiv; sonst wie ein Widget auf ihrer Ebene. */
+    private boolean clockBehindSubject() {
+        java.util.List<String> o = drawOrder();
+        return !o.isEmpty() && "clock".equals(o.get(0));
     }
 
     /** Größe in % der Bildbreite (wie der Regler "Größe"). */
@@ -385,6 +392,7 @@ final class WallpaperRenderer {
         JSONObject eff = infoCfg.get(id);
         TextLayer l = infoText.get(id);
         if (eff == null || l == null) return new RectF();
+        if (isClockType(eff.optString("type"))) return ClockRenderer.clockBox(l, clockCfg(id, eff), clockFormat(eff), width, height);
         WidgetParts.Content content = InfoWidgets.build(eff.optString("type"), eff, widgetData);
         if (content.isEmpty()) return new RectF();
         float[] m = WidgetParts.measure(content, l.paint, l.size());
@@ -408,9 +416,10 @@ final class WallpaperRenderer {
     /** Was „Stil der Uhr übernehmen“ von der Uhr übernimmt (Größe, Position und Inhalt bleiben eigen). */
     static final String[] LINK_KEYS = {"font", "systemFont", "weight", "letterSpacing", "color", "colorNight", "opacity",
             "shadow", "shadowStyle", "shadowColor", "shadowBlur", "shadowDistance", "shadowAngle", "shadowStrength",
-            "glowColor", "glowSize", "glowStrength", "fill", "gradientColor", "gradientColors", "gradientAngle", "glassFrost",
-            "glassEdge", "photoBright", "hollowWidth", "gradientOverlay", "gradientMix", "outline", "outlineColor", "outlineWidth",
-            "outlineFill", "outlineGradientColors", "outlineGradientAngle", "outlineGlassFrost", "outlinePhotoBright", "neonColor", "neonSize",
+            "glowColor", "glowSize", "glowStrength", "fill", "gradientColor", "gradientColors", "gradientStops", "gradientSoft",
+            "gradientAngle", "glassFrost", "glassBlur", "glassEdge", "photoBright", "hollowWidth", "gradientOverlay", "gradientMix",
+            "outline", "outlineColor", "outlineWidth", "outlineFill", "outlineGradientColors", "outlineGradientStops",
+            "outlineGradientSoft", "outlineGradientAngle", "outlineGlassFrost", "outlineGlassBlur", "outlinePhotoBright", "neonColor", "neonSize",
             "neonStrength", "longColor", "longLength", "longAngle", "longStrength", "retroColor1", "retroColor2",
             "retroDistance", "retroAngle", "fade", "fadeStart", "fadeLength", "fadeAngle"};
 
@@ -755,13 +764,14 @@ final class WallpaperRenderer {
 
         float sceneLight = showBackgroundFilter ? (mood.brightness * (1 - 0.3f * wx.cloud)) : 1.0f;
         if (scene != null) { // Füllungen Bild und Milchglas brauchen Foto und Bildfarben dieses Frames
-            clockText.setBackdrop(scene.photo, scene.photoSoft, fit, cm);
-            for (TextLayer l : infoText.values()) l.setBackdrop(scene.photo, scene.photoSoft, fit, cm);
-            widgetText.setBackdrop(scene.photo, scene.photoSoft, fit, cm);
+            clockText.setBackdrop(scene.photo, scene.photoMid, scene.photoSoft, fit, cm);
+            for (TextLayer l : infoText.values()) l.setBackdrop(scene.photo, scene.photoMid, scene.photoSoft, fit, cm);
+            widgetText.setBackdrop(scene.photo, scene.photoMid, scene.photoSoft, fit, cm);
         }
         final float light = sceneLight;
         final float night = effectiveNight;
-        if (showClock) rotated(c, "clock", clockBoxNow(), () -> drawClock(c, scene, mood, time, light, night));
+        boolean clockBack = clockBehindSubject();
+        if (showClock && clockBack) rotated(c, "clock", clockBoxNow(), () -> drawClock(c, scene, mood, time, light, night));
 
         if (scene != null && highlight != null) {
             // Vorschau beim Ziehen des Ebenen-Reglers: Motiv live aus der Maske, die vorberechnete Ebene ist noch alt
@@ -786,14 +796,25 @@ final class WallpaperRenderer {
         final ColorMatrixColorFilter plants = plantGrade;
         Runnable land = () -> drawLand(c, scene, grade, plants, hazeColor, hazeAlpha);
         for (String id : drawOrder()) { // gespeicherte Reihenfolge: zuletzt gezeichnet liegt vorn
-            if ("widget".equals(id)) {
+            if ("clock".equals(id)) {
+                if (clockBack) continue;
+                RectF box = clockBoxNow();
+                rotated(c, "clock", box, () -> drawClock(c, scene, mood, time, light, night));
+                JSONObject cut = new JSONObject();
+                try {
+                    cut.put("layerThreshold", section("scene").optDouble("subjectThreshold", Double.NaN));
+                } catch (org.json.JSONException ignored) {
+                    // NaN lehnt put ab: dann automatische Ebene wie bei Widgets
+                }
+                drawCut(c, scene, "clock", cut, rotatedBox("clock", box), land);
+            } else if ("widget".equals(id)) {
                 RectF box = widgetBox(time, wx);
                 rotated(c, "widget", box, () -> drawWidget(c, scene, mood, time, wx, light, night));
                 drawCut(c, scene, "widget", section("widget"), rotatedBox("widget", box), land);
             } else {
                 JSONObject eff = infoCfg.get(id);
                 RectF box = infoBox(id);
-                rotated(c, id, box, () -> drawInfo(c, scene, mood, id, eff, light, night));
+                rotated(c, id, box, () -> drawInfo(c, scene, mood, id, eff, time, light, night));
                 drawCut(c, scene, id, eff, rotatedBox(id, box), land);
             }
         }
@@ -881,15 +902,46 @@ final class WallpaperRenderer {
     }
 
     /** Info-Widget mit seinem Stil und allen Effekten. */
-    private void drawInfo(Canvas c, Scene scene, Mood mood, String id, JSONObject eff, float sceneLight, float effectiveNight) {
+    private void drawInfo(Canvas c, Scene scene, Mood mood, String id, JSONObject eff, long time, float sceneLight, float effectiveNight) {
         TextLayer l = infoText.get(id);
         if (l == null) return;
         l.prepare((scene != null ? scene.clockLuminance : 0.5f) * sceneLight, effectiveNight);
+        if (isClockType(eff.optString("type"))) {
+            ClockRenderer.draw(c, l, clockCfg(id, eff), clockFormat(eff), time, width, height);
+            return;
+        }
         WidgetParts.Content content = InfoWidgets.build(eff.optString("type"), eff, widgetData);
         if (content.isEmpty()) return;
         RectF box = infoBox(id);
         String align = eff.optString("align", "center");
         l.draw(c, box, p -> WidgetParts.draw(c, content, p, l.size(), box.left, box.top, align));
+    }
+
+    /** Weitere Uhren sind Info-Widgets der Art clock_digital, clock_analog … */
+    private static boolean isClockType(String type) {
+        return type.startsWith("clock_");
+    }
+
+    /** Uhr-Widget an seiner aktuellen Stelle (auch beim Ziehen), so wie ClockRenderer sie liest. */
+    private JSONObject clockCfg(String id, JSONObject eff) {
+        float[] pos = position(id);
+        putQuiet(eff, "xPct", pos[0]);
+        putQuiet(eff, "yPct", pos[1]);
+        return eff;
+    }
+
+    /** Uhrzeit-Format; übernommene Formate anderer Elemente (z. B. "all" von Datum & Wetter) zählen nicht. */
+    private static SimpleDateFormat clockFormat(JSONObject eff) {
+        String f = eff.optString("format", "HH:mm");
+        return new SimpleDateFormat(f.contains("H") || f.contains("h") ? f : "HH:mm", Locale.GERMANY);
+    }
+
+    private static void putQuiet(JSONObject o, String key, Object value) {
+        try {
+            o.put(key, value);
+        } catch (org.json.JSONException e) {
+            throw new IllegalStateException(e);
+        }
     }
 
     /** Was vor dem Element liegt (nach seiner Ebene), auf seiner Fläche wieder darüberzeichnen. */

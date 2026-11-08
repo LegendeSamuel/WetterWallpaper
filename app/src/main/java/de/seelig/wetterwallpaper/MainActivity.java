@@ -48,6 +48,7 @@ import com.google.android.material.chip.Chip;
 import com.google.android.material.chip.ChipGroup;
 import com.google.android.material.color.MaterialColors;
 import com.google.android.material.materialswitch.MaterialSwitch;
+import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 import com.google.android.material.snackbar.Snackbar;
 
 import java.io.File;
@@ -90,10 +91,12 @@ public class MainActivity extends AppCompatActivity {
             Map.entry("spacing", Set.of("letterSpacing")),
             Map.entry("align", Set.of("align")),
             Map.entry("rotate", Set.of("rotation")),
-            Map.entry("fill", Set.of("color", "colorNight", "colorDark", "colorLight", "fill", "gradientColor", "gradientColors", "gradientAngle", "glassFrost", "glassEdge",
+            Map.entry("fill", Set.of("color", "colorNight", "colorDark", "colorLight", "fill", "gradientColor", "gradientColors",
+                    "gradientStops", "gradientSoft", "gradientAngle", "glassFrost", "glassBlur", "glassEdge",
                     "photoBright", "hollowWidth", "gradientOverlay", "gradientMix")),
             Map.entry("outline", Set.of("outline", "outlineColor", "outlineWidth", "outlineFill", "outlineGradientColors",
-                    "outlineGradientAngle", "outlineGlassFrost", "outlinePhotoBright")),
+                    "outlineGradientStops", "outlineGradientSoft", "outlineGradientAngle", "outlineGlassFrost", "outlineGlassBlur",
+                    "outlinePhotoBright")),
             Map.entry("shadow", Set.of("shadow", "shadowStyle", "shadowColor", "shadowBlur", "shadowDistance", "shadowAngle",
                     "shadowStrength", "glowColor", "glowSize", "glowStrength", "neonColor", "neonSize", "neonStrength",
                     "longColor", "longLength", "longAngle", "longStrength", "retroColor1", "retroColor2", "retroDistance",
@@ -226,11 +229,6 @@ public class MainActivity extends AppCompatActivity {
             }
 
             @Override
-            public void onDelete(String id) {
-                if (widgets != null) widgets.remove(id);
-            }
-
-            @Override
             public void onResized(String id, float sizePct, float xPct, float yPct, float rotation) {
                 settings.put(id, "sizePct", Math.round(sizePct * 10) / 10.0);
                 settings.put(id, "xPct", Math.round(xPct * 10) / 10.0);
@@ -244,6 +242,9 @@ public class MainActivity extends AppCompatActivity {
 
         findViewById(R.id.deleteButton).setOnClickListener(v -> {
             if (widgets != null) widgets.confirmRemove(widgets.selected());
+        });
+        findViewById(R.id.copyButton).setOnClickListener(v -> {
+            if (widgets != null) widgets.duplicate(widgets.selected());
         });
         findViewById(R.id.visibleButton).setOnClickListener(v -> {
             String sel = widgets != null ? widgets.selected() : null;
@@ -394,7 +395,7 @@ public class MainActivity extends AppCompatActivity {
         LinearLayout box = new LinearLayout(this);
         box.setOrientation(LinearLayout.VERTICAL);
         TextView t = new TextView(this);
-        t.setText("Was liegt vorn, wenn sich Widgets überlappen?");
+        t.setText("Was liegt vorn, wenn sich Uhr und Widgets überlappen?");
         t.setTextAppearance(R.style.TextAppearance_Wetter_BodyMedium);
         box.addView(t);
         MaterialButton b = new MaterialButton(this, null, com.google.android.material.R.attr.materialButtonOutlinedStyle);
@@ -479,13 +480,10 @@ public class MainActivity extends AppCompatActivity {
         return widgets != null ? widgets.selected() : null;
     }
 
-    /** Werkzeuge einer Gruppe für das gewählte Element (Reihenfolge gilt nicht für die Uhr). */
+    /** Werkzeuge einer Gruppe für das gewählte Element. */
     private static String[][] toolsOf(String group, String sel) {
         for (int i = 0; i < GROUPS.length; i++) {
-            if (!GROUPS[i][0].equals(group)) continue;
-            String[][] t = GROUP_TOOLS[i];
-            if ("place".equals(group) && "clock".equals(sel)) return new String[][]{t[0]};
-            return t;
+            if (GROUPS[i][0].equals(group)) return GROUP_TOOLS[i];
         }
         return GROUP_TOOLS[0];
     }
@@ -513,12 +511,14 @@ public class MainActivity extends AppCompatActivity {
             title.setText("Element antippen oder hinzufügen");
             visible.setEnabled(false);
             deleteBtn.setEnabled(false);
+            findViewById(R.id.copyButton).setEnabled(false);
             updateGroupBar(null);
             preview.outline(null);
             return;
         }
         visible.setEnabled(true);
         deleteBtn.setEnabled(true);
+        findViewById(R.id.copyButton).setEnabled(true);
         boolean on = settings.b(sel, "enabled", true);
         visible.setIconResource(on ? R.drawable.ic_eye : R.drawable.ic_eye_off);
         visible.setContentDescription(on ? "Ausblenden" : "Wieder einblenden");
@@ -739,6 +739,28 @@ public class MainActivity extends AppCompatActivity {
         pickFont.launch(new String[]{"font/ttf", "font/otf", "font/sfnt",
                 "application/x-font-ttf", "application/x-font-otf", "application/vnd.ms-opentype",
                 "application/font-sfnt", "application/octet-stream"});
+    }
+
+    /** Eigene Schrift (alle Dateien der Familie) löschen; wer sie nutzt, bekommt wieder die Systemschrift. */
+    void confirmDeleteFont(String family, java.util.List<String> files) {
+        new com.google.android.material.dialog.MaterialAlertDialogBuilder(this)
+                .setTitle("Schrift „" + family + "“ löschen?")
+                .setMessage("Uhr und Widgets mit dieser Schrift bekommen wieder die Standardschrift.")
+                .setNegativeButton("Abbrechen", null)
+                .setPositiveButton("Löschen", (d, w) -> {
+                    java.util.List<String> sections = new java.util.ArrayList<>(java.util.List.of("clock", "widget"));
+                    sections.addAll(settings.widgetIds());
+                    for (String sec : sections) if (files.contains(settings.s(sec, "font", ""))) settings.remove(sec, "font");
+                    for (String f : files) {
+                        if (!new File(dir, f).delete()) Log.w(TAG, "Schrift nicht gelöscht: " + f);
+                    }
+                    changed();
+                    clockPanel.buildFontChips();
+                    widgetPanel.buildFontChips();
+                    widgets.refreshFonts();
+                    Snackbar.make(root, "Schrift „" + family + "“ gelöscht.", Snackbar.LENGTH_SHORT).show();
+                })
+                .show();
     }
 
     PreviewView preview() {
@@ -978,8 +1000,7 @@ public class MainActivity extends AppCompatActivity {
         loadPhotoColors();
         updateEmptyState();
         Snackbar s = Snackbar.make(root, String.format(Locale.GERMANY,
-                "Fertig in %.1f s. Das Wallpaper ist schon aktualisiert.", secs), Snackbar.LENGTH_LONG);
-        if (!isOurWallpaperActive()) s.setAction("Festlegen", v -> openWallpaperPicker());
+                "Fertig in %.1f s. Mit „Speichern“ kommt es aufs Wallpaper.", secs), Snackbar.LENGTH_LONG);
         s.show();
     }
 
@@ -1167,8 +1188,44 @@ public class MainActivity extends AppCompatActivity {
         statusButton.setOnClickListener(v -> {
             handler.removeCallbacks(saveTask);
             saveNow();
-            openWallpaperPicker();
+            // getrennte Live-Wallpaper für Start- und Sperrbildschirm gibt es erst ab Android 14
+            if (Build.VERSION.SDK_INT < 34) {
+                publish("both");
+                return;
+            }
+            new MaterialAlertDialogBuilder(this)
+                    .setTitle("Wo speichern?")
+                    .setItems(new String[]{"Sperrbildschirm", "Startbildschirm", "Beide"},
+                            (d, w) -> publish(new String[]{"lock", "home", "both"}[w]))
+                    .show();
         });
+    }
+
+    /** Stand für den Bildschirm speichern; läuft das Wallpaper dort noch nicht, danach festlegen. */
+    private void publish(String screen) {
+        worker.execute(() -> {
+            try {
+                Published.save(dir, screen);
+                WeatherWallpaperService.filesChanged();
+                runOnUiThread(() -> {
+                    if (activeOn(screen)) Snackbar.make(root, "Gespeichert", Snackbar.LENGTH_SHORT).show();
+                    else openWallpaperPicker();
+                });
+            } catch (IOException e) {
+                Log.e(TAG, "Wallpaper speichern fehlgeschlagen", e);
+                runOnUiThread(() -> Snackbar.make(root, "Das Wallpaper konnte nicht gespeichert werden.", Snackbar.LENGTH_LONG).show());
+            }
+        });
+    }
+
+    private boolean activeOn(String screen) {
+        WallpaperManager wm = WallpaperManager.getInstance(this);
+        ComponentName ours = new ComponentName(this, WeatherWallpaperService.class);
+        boolean home = isOurs(wm.getWallpaperInfo(), ours);
+        // ohne eigenes Sperrbild (Id < 0) zeigt der Sperrbildschirm das Startbild
+        boolean lock = Build.VERSION.SDK_INT >= 34 && wm.getWallpaperId(WallpaperManager.FLAG_LOCK) >= 0
+                ? isOurs(wm.getWallpaperInfo(WallpaperManager.FLAG_LOCK), ours) : home;
+        return "home".equals(screen) ? home : "lock".equals(screen) ? lock : home && lock;
     }
 
     /** Aktiv auf Start- oder Sperrbildschirm. */

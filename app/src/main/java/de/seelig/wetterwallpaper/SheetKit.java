@@ -146,7 +146,7 @@ final class SheetKit {
                 }
             });
         }
-        box.addView(s);
+        box.addView(SliderInput.row(s, live ? null : onChange));
         if (lo != null) {
             LinearLayout ends = new LinearLayout(a);
             ends.setPadding(a.dp(16), 0, a.dp(16), 0);

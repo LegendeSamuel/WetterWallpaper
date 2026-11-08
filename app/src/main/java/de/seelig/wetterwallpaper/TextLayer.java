@@ -44,7 +44,7 @@ final class TextLayer {
             Map.entry("longLength", 40), Map.entry("longAngle", 45), Map.entry("longStrength", 70),
             Map.entry("retroDistance", 30), Map.entry("retroAngle", 135),
             Map.entry("outlineWidth", 25), Map.entry("hollowWidth", 30),
-            Map.entry("gradientAngle", 90), Map.entry("glassFrost", 50), Map.entry("glassEdge", 50),
+            Map.entry("gradientAngle", 90), Map.entry("glassFrost", 50), Map.entry("glassBlur", 40), Map.entry("glassEdge", 50),
             Map.entry("photoBright", 60), Map.entry("gradientMix", 60),
             Map.entry("fadeStart", 50), Map.entry("fadeLength", 40), Map.entry("fadeAngle", 90));
     /** Standardfarben der Effekte ("auto" bedeutet diese Farbe). */
@@ -59,11 +59,11 @@ final class TextLayer {
     private final Paint work = new Paint(Paint.ANTI_ALIAS_FLAG);
     private JSONObject cfg = new JSONObject();
     private int shown = Color.WHITE;
-    // für die Füllungen Bild und Milchglas, je Frame vom Renderer gesetzt
+    // für die Füllungen Bild und Glas, je Frame vom Renderer gesetzt
     private Bitmap photo;
+    private Bitmap photoMid;
     private Bitmap photoSoft;
     private final Matrix photoMatrix = new Matrix();
-    private final Matrix softMatrix = new Matrix();
     private final Matrix refract = new Matrix();
     private ColorMatrix grade = new ColorMatrix();
 
@@ -136,16 +136,13 @@ final class TextLayer {
         return WallpaperRenderer.clamp01((float) cfg.optDouble("opacity", 1));
     }
 
-    /** Foto (Szenengröße), weiches Foto (verkleinert) und Bildfarben des Frames für die Füllungen Bild und Milchglas. */
-    void setBackdrop(Bitmap photo, Bitmap photoSoft, Matrix fit, ColorMatrix grade) {
+    /** Foto (Szenengröße), mittel und stark verkleinertes Foto und Bildfarben des Frames für die Füllungen Bild und Glas. */
+    void setBackdrop(Bitmap photo, Bitmap photoMid, Bitmap photoSoft, Matrix fit, ColorMatrix grade) {
         this.photo = photo;
+        this.photoMid = photoMid;
         this.photoSoft = photoSoft;
         this.grade = grade;
         photoMatrix.set(fit);
-        softMatrix.set(fit);
-        if (photo != null && photoSoft != null) {
-            softMatrix.preScale(photo.getWidth() / (float) photoSoft.getWidth(), photo.getHeight() / (float) photoSoft.getHeight());
-        }
     }
 
     /**
@@ -279,8 +276,20 @@ final class TextLayer {
         float dx = (float) Math.cos(a);
         float dy = (float) Math.sin(a);
         float half = Math.abs(dx) * box.width() / 2 + Math.abs(dy) * box.height() / 2;
+        int[] colors = gradientColors(p);
+        float[] pos = GradientStops.positions(fractions(cfg.optJSONArray(key(p, "gradientStops"))), colors.length);
+        float[] soft = GradientStops.softness(fractions(cfg.optJSONArray(key(p, "gradientSoft"))), colors.length);
         return new LinearGradient(box.centerX() - dx * half, box.centerY() - dy * half,
-                box.centerX() + dx * half, box.centerY() + dy * half, gradientColors(p), null, Shader.TileMode.CLAMP);
+                box.centerX() + dx * half, box.centerY() + dy * half, GradientStops.colors(colors),
+                GradientStops.stops(pos, soft), Shader.TileMode.CLAMP);
+    }
+
+    /** Liste von Prozentwerten (0..100) als Anteile 0..1, null ohne Liste. */
+    static float[] fractions(org.json.JSONArray a) {
+        if (a == null) return null;
+        float[] f = new float[a.length()];
+        for (int i = 0; i < f.length; i++) f[i] = (float) a.optDouble(i, 0) / 100f;
+        return f;
     }
 
     /** Füllung der Schrift (prefix "", stroke 0) oder der Kontur (prefix "outline", stroke = Konturbreite). */
@@ -305,15 +314,23 @@ final class TextLayer {
                 work.setColorFilter(new ColorMatrixColorFilter(brighten(1 + pct(key(p, "photoBright"), fx("photoBright")) * 0.8f, 1.3f, 0)));
                 break;
             case "glass": {
-                if (photo == null || photoSoft == null) break;
-                // klares Glas: Foto leicht versetzt und aufgehellt; "Milchig" blendet das weiche, weißliche Foto darüber
+                if (photo == null || photoMid == null || photoSoft == null) break;
+                // klares Glas: Foto leicht versetzt und aufgehellt, "Unschärfe" blendet scharf → mittel → weich über;
+                // "Milchig" legt das weiche, weißliche Foto darüber
                 float frost = pct(key(p, "glassFrost"), fx("glassFrost"));
-                refract.set(photoMatrix);
-                refract.postTranslate(size * 0.03f, size * 0.03f);
-                work.setShader(shader(photo, refract));
+                float blur = 2 * pct(key(p, "glassBlur"), fx("glassBlur"));
+                Bitmap[] steps = {photo, photoMid, photoSoft};
+                int base = Math.min(1, (int) blur);
+                float shift = size * 0.03f;
+                work.setShader(glassShader(steps[base], shift));
                 work.setColorFilter(new ColorMatrixColorFilter(brighten(1.08f, 1.05f, 0.06f)));
                 content.accept(work);
-                work.setShader(shader(photoSoft, softMatrix));
+                if (blur - base > 0.01f) {
+                    work.setShader(glassShader(steps[base + 1], shift));
+                    work.setAlpha(Math.round(255 * (blur - base)));
+                    content.accept(work);
+                }
+                work.setShader(glassShader(photoSoft, 0));
                 work.setColorFilter(new ColorMatrixColorFilter(brighten(1.05f, 1f, 0.15f + 0.5f * frost)));
                 work.setAlpha(Math.round(255 * frost));
                 content.accept(work);
@@ -353,6 +370,14 @@ final class TextLayer {
                 0, 0, scale * k, 0, add,
                 0, 0, 0, 1, 0}));
         return m;
+    }
+
+    /** Foto b (Szenenfoto oder verkleinert) deckungsgleich über dem Bild, um shift versetzt (Lichtbrechung). */
+    private Shader glassShader(Bitmap b, float shift) {
+        refract.set(photoMatrix);
+        refract.preScale(photo.getWidth() / (float) b.getWidth(), photo.getHeight() / (float) b.getHeight());
+        refract.postTranslate(shift, shift);
+        return shader(b, refract);
     }
 
     private static Shader shader(Bitmap b, Matrix m) {

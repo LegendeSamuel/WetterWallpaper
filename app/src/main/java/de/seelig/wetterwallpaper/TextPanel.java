@@ -77,10 +77,11 @@ final class TextPanel {
         layerSlider = panel.findViewById(R.id.depthSlider);
         linkNote = panel.findViewById(R.id.linkNote);
         tools.put("font", panel.findViewById(R.id.groupFont));
-        tools.put("size", panel.findViewById(R.id.sizeSlider));
-        tools.put("spacing", panel.findViewById(R.id.spacingSlider));
+        tools.put("size", SliderInput.wrap(panel.findViewById(R.id.sizeSlider), null));
+        tools.put("spacing", SliderInput.wrap(panel.findViewById(R.id.spacingSlider), null));
         tools.put("align", panel.findViewById(R.id.alignToggle));
-        tools.put("opacity", panel.findViewById(R.id.opacitySlider));
+        tools.put("opacity", SliderInput.wrap(panel.findViewById(R.id.opacitySlider), null));
+        ((android.view.ViewGroup) weight.getParent()).addView(SliderInput.value(weight, null));
         // Füllung, Kontur, Effekt, Ausblenden: im Code gebaut, ans Panel angehängt
         effects = new EffectTools(activity, settings, sec, spec.widget, panel.findViewById(R.id.groupColor));
         android.widget.LinearLayout root = (android.widget.LinearLayout) panel;
@@ -161,7 +162,7 @@ final class TextPanel {
         s.addOnChangeListener((sl, v, fromUser) -> {
             if (fromUser) put("rotation", Math.round(v));
         });
-        box.addView(s);
+        box.addView(SliderInput.row(s, null));
         ChipGroup quick = new ChipGroup(activity);
         for (int deg : new int[]{0, 90, 180, -90}) {
             Chip c = activity.filterChip(quick, deg + "°");
@@ -193,6 +194,10 @@ final class TextPanel {
                 List<String> files = TextLayer.fontFiles(activity.dir());
                 settings.put(sec, "font", FontFamilies.nearest(files, tag.substring(4), w));
                 settings.remove(sec, "weight"); // die Datei selbst trägt die Stärke
+            }
+            // ✕ zum Löschen nur an der gewählten eigenen Schrift
+            for (int i = 0; i < g.getChildCount(); i++) {
+                if (g.getChildAt(i) instanceof Chip) ((Chip) g.getChildAt(i)).setCloseIconVisible(g.getChildAt(i) == c && tag.startsWith("fam:"));
             }
             activity.changed();
         });
@@ -264,6 +269,9 @@ final class TextPanel {
             Chip c = activity.filterChip(fontChips, fam.getKey());
             c.setTag("fam:" + sample);
             c.setTypeface(t);
+            c.setCloseIconContentDescription("Schrift " + fam.getKey() + " löschen");
+            c.setOnCloseIconClickListener(v -> activity.confirmDeleteFont(fam.getKey(), fam.getValue()));
+            c.setCloseIconVisible(fam.getKey().equals(famCurrent));
             if (fam.getKey().equals(famCurrent)) c.setChecked(true);
         }
         Chip add = (Chip) activity.getLayoutInflater().inflate(R.layout.chip_action, fontChips, false);
@@ -316,6 +324,12 @@ final class TextPanel {
         layerSlider.addOnChangeListener((sl, v, fromUser) -> {
             if (fromUser) preview.showLayerHighlight(sliderToThreshold(v), highlight);
         });
+        // erst beim Loslassen (bzw. nach dem Eintippen) speichern: jede Änderung berechnet die Bildebenen neu
+        java.util.function.Consumer<Float> save = v -> {
+            settings.put(sec, key, sliderToThreshold(v));
+            activity.changed();
+            activity.later(preview::hideLayerHighlight, 900);
+        };
         layerSlider.addOnSliderTouchListener(new Slider.OnSliderTouchListener() {
             @Override
             public void onStartTrackingTouch(Slider sl) {
@@ -324,12 +338,10 @@ final class TextPanel {
 
             @Override
             public void onStopTrackingTouch(Slider sl) {
-                // erst beim Loslassen speichern: jede Änderung berechnet die Bildebenen neu
-                settings.put(sec, key, sliderToThreshold(sl.getValue()));
-                activity.changed();
-                activity.later(preview::hideLayerHighlight, 900);
+                save.accept(sl.getValue());
             }
         });
+        SliderInput.wrap(layerSlider, save);
     }
 
     /** "die Uhr" → "der Uhr", "das Widget" → "dem Widget". */

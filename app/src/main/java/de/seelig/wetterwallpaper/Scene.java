@@ -36,14 +36,17 @@ final class Scene {
     final float subjectThreshold;
     /** Verfeinerte Tiefe je Pixel als Byte (sqrt(Nähe) × 255): Masken für Widgets und Ebenen-Markierung ohne Neuberechnung. */
     final byte[] depth8;
-    /** Das Foto selbst und eine stark verkleinerte, damit weiche Fassung: Füllungen Bild und Milchglas der Schrift. */
+    /** Das Foto selbst und verkleinerte, damit weiche Fassungen (1/4, 1/12): Füllungen Bild und Glas der Schrift. */
     final Bitmap photo;
+    final Bitmap photoMid;
     final Bitmap photoSoft;
 
     private Scene(Bitmap sky, Bitmap blend, float blendSoftness, Bitmap land, Bitmap subject, Bitmap[] masks, Bitmap[] plantLayers,
                   float clockLuminance, float subjectThreshold, byte[] depth8, Bitmap photo) {
         this.photo = photo;
-        this.photoSoft = Bitmap.createScaledBitmap(photo, Math.max(1, photo.getWidth() / 12), Math.max(1, photo.getHeight() / 12), true);
+        // in zwei Schritten verkleinert: weniger Flimmern als direkt auf 1/12
+        this.photoMid = Bitmap.createScaledBitmap(photo, Math.max(1, photo.getWidth() / 4), Math.max(1, photo.getHeight() / 4), true);
+        this.photoSoft = Bitmap.createScaledBitmap(photoMid, Math.max(1, photo.getWidth() / 12), Math.max(1, photo.getHeight() / 12), true);
         this.plants = plantLayers[0];
         this.subjectPlants = plantLayers[1];
         this.depth8 = depth8;
