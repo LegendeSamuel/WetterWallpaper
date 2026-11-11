@@ -71,6 +71,23 @@ final class SettingsSheet {
                 settings.splitScreens() ? "Getrennt gestaltet" : "Beide gleich", null, this::screens));
         root.addView(SheetKit.section(a, "place", R.drawable.ic_pin, "Standort",
                 a.locationGranted() ? "Freigegeben" : "Nicht freigegeben", null, this::location));
+        root.addView(SheetKit.section(a, "info", R.drawable.ic_info, "Info",
+                "Wetterdaten: Open-Meteo.com", null, this::info));
+    }
+
+    /** Quellenangabe (CC BY 4.0 verlangt Nennung und Link) und Lizenzen; ausführlich in THIRD_PARTY_NOTICES.md. */
+    private View info() {
+        LinearLayout b = SheetKit.column(a);
+        TextView source = SheetKit.text(a, "Wetterdaten: Open-Meteo.com (https://open-meteo.com), Lizenz CC BY 4.0.",
+                R.style.TextAppearance_Wetter_BodyMedium, 0);
+        android.text.util.Linkify.addLinks(source, android.text.util.Linkify.WEB_URLS);
+        b.addView(source);
+        b.addView(SheetKit.label(a, "Open-Source-Lizenzen"));
+        b.addView(SheetKit.help(a, "ONNX Runtime · MIT\n"
+                + "Depth Anything V2 Small (Tiefenmodell) · Apache-2.0\n"
+                + "AndroidX, Material Components · Apache-2.0\n"
+                + "Lexend (Schrift) · SIL OFL 1.1"));
+        return b;
     }
 
     private void put(String section, String key, Object value) {

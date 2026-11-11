@@ -1,8 +1,23 @@
 # ACTIVE_STATE
 
-**Last Updated:** 2026-11-11 12:20
+**Last Updated:** 2026-11-11 14:40
 **Active Agent:** Claude Code (Fable 5.2)
-**Current Goal:** Repo auf Portfolio-Stand bringen (Plan A, Phasen 0–5) und Play Store vorbereiten (Plan B, Phase 6). Keine Funktionsänderungen an der App. Phase 0 ist fertig, als Nächstes Phase 1 (Schrift Lexend statt Sofia Pro, Lizenzen, Repo-Hygiene).
+**Current Goal:** Repo auf Portfolio-Stand bringen (Plan A, Phasen 0–5) und Play Store vorbereiten (Plan B, Phase 6). Keine Funktionsänderungen an der App. Phasen 0 und 1 sind fertig, als Nächstes Phase 2 (Gradle-Wrapper, sauberer Klon außerhalb von OneDrive).
+
+## 11.11. 14:40: Phase 1 fertig (Schrift, Lizenzen, Repo-Hygiene)
+- **Entscheidungen:** Lizenz des Codes = MIT (`LICENSE`, Inhaber „Samuel Seelig“, vom User noch zu bestätigen). Debuggable-Zahl (3× oder 10×) wird später am Gerät gemessen, bis dahin keine Zahl im README.
+- **Schrift:** Lexend 200–700 als statische TTF in `res/font/lexend_*.ttf` (aus `googlefonts/lexend`, Commit 7894f02b2e), `licenses/OFL-Lexend.txt`. `res/font/app_sans.xml` ersetzt `sofia_pro.xml`, `themes.xml` zeigt an 33 Stellen darauf. Im Java-Code gab es keinen Verweis auf die UI-Schrift; `FontFamilies` (Schriften des Users) ist unberührt.
+- **Sofia Pro:** 6 .otf liegen jetzt in `../_fonts/SofiaPro/` (außerhalb des Repos), aus dem Index entfernt, `.gitignore` sperrt `**/sofiapro_*.otf` und `**/SofiaPro*`. In `local.properties` steht lokal `brandFonts.dir=../_fonts/SofiaPro`.
+- **Gradle (`app/build.gradle`):** `BrandFontsTask`/`generateBrandFonts` legt Sofia Pro nur für die Debug-Variante unter den Lexend-Namen nach `build/generated/brandFonts/res/font`. Prüfung an `mergeReleaseResources` bricht bei Dateien mit „sofia“ im Namen ab.
+- **Tests auf APK-Ebene:** (a) Debug mit `brandFonts.dir` → 6 OTF (Sofia Pro), (b) Debug ohne → 6 TTF (Lexend), (c) Release mit gesetztem `brandFonts.dir` → 6 TTF; mit einer Testdatei `sofiapro_test.otf` in `res/font` scheitern `assembleRelease` und `bundleRelease` wie gewollt. (d) frischer Klon folgt in Phase 2.
+- **Neu:** `THIRD_PARTY_NOTICES.md` (ONNX Runtime MIT, Depth Anything V2 Small Apache-2.0, AndroidX/Material Apache-2.0, Lexend OFL-1.1, Open-Meteo CC BY 4.0; alle am 11.11. an der Quelle geprüft). `depth.onnx` ist per SHA-256 identisch mit `onnx/model_fp16.onnx` aus `onnx-community/depth-anything-v2-small`.
+- **In der App:** ☰ → neuer Abschnitt „Info“ (`SettingsSheet.info()`): „Wetterdaten: Open-Meteo.com“ mit Link und die Lizenzliste.
+- **Hygiene:** `tools/__pycache__` aus dem Index, `.gitignore` um Python, Sofia Pro und Keystore-Dateien ergänzt. Keine Schlüssel oder Mailadressen in den getrackten Dateien. Absolute Benutzerpfade nur in `AGENTS.md` (erlaubt) und einer Zeile hier.
+- **Nicht geprüft:** Alles am Gerät. Lexend läuft breiter als Sofia Pro, der Check auf Abschneiden (Editor-Panels, Chips, Buttons) mit Screenshots nach `tools/out/font-check/` steht aus. Der neue Abschnitt „Info“ ist auf dem Gerät noch nicht angesehen.
+- **Offen, braucht den User:**
+  - `marketing/wetter-reel.html` bettet Sofia Pro in fünf Schnitten als Base64 ein (1,6 MB) und liegt im öffentlichen Repo. Nicht angefasst, weil außerhalb des Auftrags.
+  - `tools/input/berge.jpg`: Herkunft und Lizenz des Fotos sind im Repo nicht vermerkt.
+  - Sofia Pro steckt weiter in der Git-Historie. Bereinigung (git filter-repo + Force-Push) entscheidet der User.
 
 ## 11.11. 12:20: Portfolio-Auftrag, Phase 0 (Ist-Stand)
 - **Gerät:** Per adb war kein Gerät verbunden. Der User hat den Stand vom 30.10. selbst auf dem Handy geprüft: läuft sauber.

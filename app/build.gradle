@@ -31,6 +31,57 @@ android {
     packaging { jniLibs { useLegacyPackaging true } }
 }
 
+// --- Hausschrift nur lokal im Debug-Build ---------------------------------------------------------
+// Im Repo liegt nur Lexend (OFL). Wer die lizenzierte Hausschrift besitzt, setzt in local.properties
+//   brandFonts.dir=../_fonts/SofiaPro        (Ordner mit sofiapro_<schnitt>.otf, Pfad relativ zum Projekt)
+// Dann überdeckt sie im Debug-Build die Lexend-Dateien. Release-Varianten bekommen sie nie.
+abstract class BrandFontsTask extends DefaultTask {
+    @InputDirectory abstract DirectoryProperty getSource()
+    @InputFile abstract RegularFileProperty getFamilyXml()
+    @OutputDirectory abstract DirectoryProperty getOutputDir()
+
+    @TaskAction
+    void run() {
+        File font = new File(outputDir.get().asFile, 'font')
+        font.deleteDir()
+        font.mkdirs()
+        ['extralight', 'light', 'regular', 'medium', 'semibold', 'bold'].each { weight ->
+            File src = new File(source.get().asFile, "sofiapro_${weight}.otf")
+            if (!src.isFile()) throw new GradleException("brandFonts.dir: ${src} fehlt")
+            new File(font, "lexend_${weight}.otf").bytes = src.bytes
+        }
+        new File(font, 'app_sans.xml').bytes = familyXml.get().asFile.bytes
+    }
+}
+
+def localProps = new Properties()
+def localPropsFile = rootProject.file('local.properties')
+if (localPropsFile.isFile()) localPropsFile.withInputStream { localProps.load(it) }
+def brandFontsPath = localProps.getProperty('brandFonts.dir')?.trim()
+def brandFontsDir = brandFontsPath ? rootProject.file(brandFontsPath) : null
+
+if (brandFontsDir?.isDirectory()) {
+    def generateBrandFonts = tasks.register('generateBrandFonts', BrandFontsTask) {
+        source = brandFontsDir
+        familyXml = file('src/main/res/font/app_sans.xml')
+        outputDir = layout.buildDirectory.dir('generated/brandFonts/res')
+    }
+    androidComponents {
+        onVariants(selector().withBuildType('debug')) { variant ->
+            variant.sources.res?.addGeneratedSourceDirectory(generateBrandFonts) { it.outputDir }
+        }
+    }
+}
+
+// Sicherung: Kein Release-Build (assembleRelease, bundleRelease) mit der Hausschrift in den Ressourcen.
+tasks.matching { it.name == 'mergeReleaseResources' }.configureEach { task ->
+    task.doLast {
+        def hits = task.outputs.files.asFileTree.files.findAll { it.name.toLowerCase().contains('sofia') }
+        if (hits) throw new GradleException("Release-Build enthält die Hausschrift: ${hits*.name}. " +
+                "Sofia Pro darf nur lokal in Debug-Builds stecken.")
+    }
+}
+
 dependencies {
     implementation 'com.microsoft.onnxruntime:onnxruntime-android:1.30.0'
     implementation 'androidx.appcompat:appcompat:1.7.0'

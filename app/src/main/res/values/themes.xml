@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <!-- Seelig Designs (Designsystem "Seelig Designs"): Bernstein auf fast Schwarz, Sofia Pro leicht und groß.
+    <!-- Seelig Designs (Designsystem "Seelig Designs"): Bernstein auf fast Schwarz, Schrift leicht und groß (app_sans: Lexend, lokal im Debug-Build optional die Hausschrift).
          Fest dunkel, nicht mehr Material You. Werte aus tokens.json: amber #F2A007, gold #F2B807, on-accent #121212,
          bg #121212, surface #181818, surface-card #1C1C1C, text #FFFFFF, text-label #CCCCCC, line-strong. -->
     <style name="Theme.Wetter" parent="Theme.Material3.Dark.NoActionBar">
@@ -34,8 +34,8 @@
         <item name="colorOutlineVariant">#383838</item>
         <item name="colorError">#FF8A80</item>
 
-        <item name="fontFamily">@font/sofia_pro</item>
-        <item name="android:fontFamily">@font/sofia_pro</item>
+        <item name="fontFamily">@font/app_sans</item>
+        <item name="android:fontFamily">@font/app_sans</item>
         <item name="textAppearanceDisplayLarge">@style/TextAppearance.Wetter.DisplayLarge</item>
         <item name="textAppearanceDisplayMedium">@style/TextAppearance.Wetter.DisplayMedium</item>
         <item name="textAppearanceDisplaySmall">@style/TextAppearance.Wetter.DisplaySmall</item>
@@ -80,78 +80,78 @@
     </style>
 
     <style name="TextAppearance.Wetter.DisplayLarge" parent="TextAppearance.Material3.DisplayLarge">
-        <item name="fontFamily">@font/sofia_pro</item>
-        <item name="android:fontFamily">@font/sofia_pro</item>
+        <item name="fontFamily">@font/app_sans</item>
+        <item name="android:fontFamily">@font/app_sans</item>
         <item name="android:textFontWeight">200</item>
     </style>
     <style name="TextAppearance.Wetter.DisplayMedium" parent="TextAppearance.Material3.DisplayMedium">
-        <item name="fontFamily">@font/sofia_pro</item>
-        <item name="android:fontFamily">@font/sofia_pro</item>
+        <item name="fontFamily">@font/app_sans</item>
+        <item name="android:fontFamily">@font/app_sans</item>
         <item name="android:textFontWeight">200</item>
     </style>
     <style name="TextAppearance.Wetter.DisplaySmall" parent="TextAppearance.Material3.DisplaySmall">
-        <item name="fontFamily">@font/sofia_pro</item>
-        <item name="android:fontFamily">@font/sofia_pro</item>
+        <item name="fontFamily">@font/app_sans</item>
+        <item name="android:fontFamily">@font/app_sans</item>
         <item name="android:textFontWeight">200</item>
     </style>
     <style name="TextAppearance.Wetter.HeadlineLarge" parent="TextAppearance.Material3.HeadlineLarge">
-        <item name="fontFamily">@font/sofia_pro</item>
-        <item name="android:fontFamily">@font/sofia_pro</item>
+        <item name="fontFamily">@font/app_sans</item>
+        <item name="android:fontFamily">@font/app_sans</item>
         <item name="android:textFontWeight">300</item>
     </style>
     <style name="TextAppearance.Wetter.HeadlineMedium" parent="TextAppearance.Material3.HeadlineMedium">
-        <item name="fontFamily">@font/sofia_pro</item>
-        <item name="android:fontFamily">@font/sofia_pro</item>
+        <item name="fontFamily">@font/app_sans</item>
+        <item name="android:fontFamily">@font/app_sans</item>
         <item name="android:textFontWeight">300</item>
     </style>
     <style name="TextAppearance.Wetter.HeadlineSmall" parent="TextAppearance.Material3.HeadlineSmall">
-        <item name="fontFamily">@font/sofia_pro</item>
-        <item name="android:fontFamily">@font/sofia_pro</item>
+        <item name="fontFamily">@font/app_sans</item>
+        <item name="android:fontFamily">@font/app_sans</item>
         <item name="android:textFontWeight">300</item>
     </style>
     <style name="TextAppearance.Wetter.TitleLarge" parent="TextAppearance.Material3.TitleLarge">
-        <item name="fontFamily">@font/sofia_pro</item>
-        <item name="android:fontFamily">@font/sofia_pro</item>
+        <item name="fontFamily">@font/app_sans</item>
+        <item name="android:fontFamily">@font/app_sans</item>
         <item name="android:textFontWeight">300</item>
     </style>
     <style name="TextAppearance.Wetter.TitleMedium" parent="TextAppearance.Material3.TitleMedium">
-        <item name="fontFamily">@font/sofia_pro</item>
-        <item name="android:fontFamily">@font/sofia_pro</item>
+        <item name="fontFamily">@font/app_sans</item>
+        <item name="android:fontFamily">@font/app_sans</item>
         <item name="android:textFontWeight">400</item>
     </style>
     <style name="TextAppearance.Wetter.TitleSmall" parent="TextAppearance.Material3.TitleSmall">
-        <item name="fontFamily">@font/sofia_pro</item>
-        <item name="android:fontFamily">@font/sofia_pro</item>
+        <item name="fontFamily">@font/app_sans</item>
+        <item name="android:fontFamily">@font/app_sans</item>
         <item name="android:textFontWeight">500</item>
     </style>
     <style name="TextAppearance.Wetter.BodyLarge" parent="TextAppearance.Material3.BodyLarge">
-        <item name="fontFamily">@font/sofia_pro</item>
-        <item name="android:fontFamily">@font/sofia_pro</item>
+        <item name="fontFamily">@font/app_sans</item>
+        <item name="android:fontFamily">@font/app_sans</item>
         <item name="android:textFontWeight">300</item>
     </style>
     <style name="TextAppearance.Wetter.BodyMedium" parent="TextAppearance.Material3.BodyMedium">
-        <item name="fontFamily">@font/sofia_pro</item>
-        <item name="android:fontFamily">@font/sofia_pro</item>
+        <item name="fontFamily">@font/app_sans</item>
+        <item name="android:fontFamily">@font/app_sans</item>
         <item name="android:textFontWeight">300</item>
     </style>
     <style name="TextAppearance.Wetter.BodySmall" parent="TextAppearance.Material3.BodySmall">
-        <item name="fontFamily">@font/sofia_pro</item>
-        <item name="android:fontFamily">@font/sofia_pro</item>
+        <item name="fontFamily">@font/app_sans</item>
+        <item name="android:fontFamily">@font/app_sans</item>
         <item name="android:textFontWeight">300</item>
     </style>
     <style name="TextAppearance.Wetter.LabelLarge" parent="TextAppearance.Material3.LabelLarge">
-        <item name="fontFamily">@font/sofia_pro</item>
-        <item name="android:fontFamily">@font/sofia_pro</item>
+        <item name="fontFamily">@font/app_sans</item>
+        <item name="android:fontFamily">@font/app_sans</item>
         <item name="android:textFontWeight">600</item>
     </style>
     <style name="TextAppearance.Wetter.LabelMedium" parent="TextAppearance.Material3.LabelMedium">
-        <item name="fontFamily">@font/sofia_pro</item>
-        <item name="android:fontFamily">@font/sofia_pro</item>
+        <item name="fontFamily">@font/app_sans</item>
+        <item name="android:fontFamily">@font/app_sans</item>
         <item name="android:textFontWeight">500</item>
     </style>
     <style name="TextAppearance.Wetter.LabelSmall" parent="TextAppearance.Material3.LabelSmall">
-        <item name="fontFamily">@font/sofia_pro</item>
-        <item name="android:fontFamily">@font/sofia_pro</item>
+        <item name="fontFamily">@font/app_sans</item>
+        <item name="android:fontFamily">@font/app_sans</item>
         <item name="android:textFontWeight">500</item>
     </style>
 

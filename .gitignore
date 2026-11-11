@@ -5,3 +5,16 @@ app/build/
 .gradle/
 local.properties
 *.apk
+
+# Python
+__pycache__/
+*.pyc
+
+# Hausschrift (kommerzielle Lizenz): nie ins Repo
+**/sofiapro_*.otf
+**/SofiaPro*
+
+# Signing
+keystore.properties
+*.jks
+*.keystore
