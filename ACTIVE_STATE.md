@@ -1,8 +1,15 @@
 # ACTIVE_STATE
 
-**Last Updated:** 2026-11-11 14:40
+**Last Updated:** 2026-11-11 14:14
 **Active Agent:** Claude Code (Fable 5.2)
-**Current Goal:** Repo auf Portfolio-Stand bringen (Plan A, Phasen 0–5) und Play Store vorbereiten (Plan B, Phase 6). Keine Funktionsänderungen an der App. Phasen 0 und 1 sind fertig, als Nächstes Phase 2 (Gradle-Wrapper, sauberer Klon außerhalb von OneDrive).
+**Current Goal:** Repo auf Portfolio-Stand bringen (Plan A, Phasen 0–5) und Play Store vorbereiten (Plan B, Phase 6). Keine Funktionsänderungen an der App. Phasen 0 bis 2 sind fertig, als Nächstes Phase 3 (Selbsttests als JUnit, GitHub Actions).
+
+## 11.11. 14:14: Phase 2 fertig (reproduzierbarer Build)
+- **Gradle-Wrapper** für 8.13 im Repo (`gradlew`, `gradlew.bat`, `gradle/wrapper/*`), `gradlew` mit Ausführungsbit im Index.
+- **`.gitattributes`** neu: `gradlew` immer mit LF (sonst scheitert die CI unter Linux), Binärdateien markiert.
+- **Geprüft:** Den Index in einen Ordner außerhalb von OneDrive exportiert (`git checkout-index`, also genau die getrackten Dateien, ohne `local.properties`), dort `./gradlew assembleDebug` mit gesetztem `ANDROID_HOME`: BUILD SUCCESSFUL in 19 s (Gradle- und Abhängigkeits-Cache warm, Daemon lief), APK enthält die 6 Lexend-TTF. Das deckt auch Schrift-Test (d) ab.
+- **Nicht gemessen:** Ein Rechner ohne Gradle-Cache lädt zusätzlich Gradle 8.13, AGP und die ONNX Runtime herunter; die Zeit dafür liefert der erste CI-Lauf in Phase 3.
+- **AGENTS.md:** Build-Kommando auf den Wrapper umgestellt.
 
 ## 11.11. 14:40: Phase 1 fertig (Schrift, Lizenzen, Repo-Hygiene)
 - **Entscheidungen:** Lizenz des Codes = MIT (`LICENSE`, Inhaber „Samuel Seelig“, vom User noch zu bestätigen). Debuggable-Zahl (3× oder 10×) wird später am Gerät gemessen, bis dahin keine Zahl im README.

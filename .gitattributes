@@ -1,0 +1,10 @@
+# Zeilenenden: gradlew muss auf Linux/macOS (CI) mit LF ankommen
+* text=auto
+gradlew text eol=lf
+*.bat text eol=crlf
+*.jar binary
+*.ttf binary
+*.otf binary
+*.onnx binary
+*.png binary
+*.jpg binary
