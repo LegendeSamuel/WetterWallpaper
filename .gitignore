@@ -13,6 +13,8 @@ __pycache__/
 # Hausschrift (kommerzielle Lizenz): nie ins Repo
 **/sofiapro_*.otf
 **/SofiaPro*
+# Bettet Sofia Pro als Base64 ein, bleibt deshalb nur lokal
+marketing/wetter-reel.html
 
 # Signing
 keystore.properties
