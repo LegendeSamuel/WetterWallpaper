@@ -1,8 +1,16 @@
 # ACTIVE_STATE
 
-**Last Updated:** 2026-10-30 09:30
-**Active Agent:** Claude Code (Opus)
-**Current Goal:** Fünf Wünsche aus dem Alltagstest sind gebaut (kein Ziehen-zum-Löschen, mehrere Uhren/Datum & Wetter, Speichern pro Bildschirm, Sonnenbogen ohne Strich, Uhr in der Reihenfolge). Als Nächstes: am Gerät installieren und testen.
+**Last Updated:** 2026-11-11 12:20
+**Active Agent:** Claude Code (Fable 5.2)
+**Current Goal:** Repo auf Portfolio-Stand bringen (Plan A, Phasen 0–5) und Play Store vorbereiten (Plan B, Phase 6). Keine Funktionsänderungen an der App. Phase 0 ist fertig, als Nächstes Phase 1 (Schrift Lexend statt Sofia Pro, Lizenzen, Repo-Hygiene).
+
+## 11.11. 12:20: Portfolio-Auftrag, Phase 0 (Ist-Stand)
+- **Gerät:** Per adb war kein Gerät verbunden. Der User hat den Stand vom 30.10. selbst auf dem Handy geprüft: läuft sauber.
+- **Build:** `gradle -I tools/outside-build.gradle assembleDebug` (Gradle 8.13, JBR 21) läuft durch, ohne `--offline`.
+- **AGENTS.md an den Code angepasst:** compileSdk/targetSdk 34 statt „targetSdk 35“, minSdk 29, AGP/Gradle-Version ergänzt; kaputter APK-Pfad repariert (zwei Steuerzeichen statt `\a`); `--offline` als Sonderfall; fehlende Klassen (`WeatherWallpaperService`, `Published`, Widgets, Wetter) und die Liste der Selbsttests ergänzt.
+- **Offene Abweichung:** AGENTS.md nennt „debuggable etwa 3x langsamer (18 s statt 6 s)“, der Kommentar in `app/build.gradle` „~10x“. Nicht geändert, der User entscheidet, welche Zahl stimmt.
+- **Entscheidungen des Users zum Auftrag:** UI-Schrift wird Lexend (OFL), Sofia Pro nur lokal für Debug-Builds. README englisch mit deutscher Kurzfassung. **Lizenz des Codes ist noch offen** (im Auftrag stand der Platzhalter „MIT | GPL-3.0 | keine“).
+- **Zum Selbsttesten am Gerät (aus dem 30.10.):** Speichern nur Start- bzw. nur Sperrbildschirm, Uhr vor einem Widget, zweite Uhr ziehen und skalieren.
 
 ## 30.10. 09:30: Wünsche aus dem Alltagstest (gebaut, nicht installiert)
 - **Ziehen-zum-Löschen entfernt:** Mülleimer-Zone, `hoveringTrash` und `Listener.onDelete` in `PreviewView` sind weg. Entfernen geht über 🗑 im Editor.
