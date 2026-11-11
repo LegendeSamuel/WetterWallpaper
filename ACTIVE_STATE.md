@@ -1,8 +1,21 @@
 # ACTIVE_STATE
 
-**Last Updated:** 2026-11-11 14:20
+**Last Updated:** 2026-11-11 14:28
 **Active Agent:** Claude Code (Fable 5.2)
-**Current Goal:** Repo auf Portfolio-Stand bringen (Plan A, Phasen 0–5) und Play Store vorbereiten (Plan B, Phase 6). Keine Funktionsänderungen an der App. Phasen 0 bis 4 sind fertig, Phase 5 ist bis auf Signieren, Gerätetest und Release-Draft vorbereitet (braucht den User). Als Nächstes Phase 6 auf dem Branch play-prep.
+**Current Goal:** Repo auf Portfolio-Stand (Plan A) und Play-Vorbereitung (Plan B). Alle Phasen 0–6 sind so weit erledigt, wie es ohne Gerät, ohne Keystore und ohne Push geht. Offen sind Gerätetests, Signieren, Push und die Entscheidungen des Users (siehe oberster Eintrag).
+
+## 11.11. 14:28: Phase 6 vorbereitet (Play Store), Stand am Ende der Sitzung
+- **Regeln an der Quelle geprüft (11.11.2026):** Neue Apps und Updates müssen seit 31.08.2026 auf API 36 zielen. Private Konten (nach 13.11.2023 angelegt): geschlossener Test mit mindestens 12 Testern, 14 Tage ununterbrochen. Quellen stehen in `docs/play/checklist.md`.
+- **Branch `play-prep`** (= `main` + 1 Commit): compileSdk/targetSdk 36, AGP 8.13.2, `CropActivity` mit `android:enableOnBackInvokedCallback="false"` (ab targetSdk 36 wird `onBackPressed()` sonst nicht mehr aufgerufen). Tests grün, `assembleDebug`, `assembleRelease` und `bundleRelease` laufen (AAB etwa 63 MB). **Nicht am Gerät getestet.** `main` bleibt bei SDK 34 / AGP 8.7.3.
+- **Im Code geprüft:** Edge-to-edge ist schon umgesetzt, kein Foreground-Service, kein `scheduleAtFixedRate`, native Bibliotheken 16-KB-ausgerichtet. Tabelle in `docs/play/checklist.md`.
+- **`docs/play/`:** `privacy-policy.md` (Entwurf DE+EN mit Platzhaltern), `data-safety.md`, `store-listing.md` (DE+EN), `checklist.md`.
+- **Nichts gepusht, nichts hochgeladen.** `main` ist 8 Commits vor `origin/main`, `play-prep` existiert nur lokal. Die CI ist deshalb noch nie gelaufen.
+
+### Nächste Schritte
+1. User: pushen (`git push origin main`, `git push -u origin play-prep`), ersten CI-Lauf ansehen.
+2. Handy per USB-Debugging: Lexend-Check auf Abschneiden mit Screenshots nach `tools/out/font-check/`, Abschnitt „Info“ ansehen, Debuggable-Messung (3× oder 10×), Gerätetests aus `docs/play/checklist.md` mit dem Build von `play-prep`.
+3. User: Release-Keystore anlegen, signiertes APK testen, Release-Draft v1.0.0 (Befehle im Eintrag zu Phase 5).
+4. Entscheidungen des Users: Git-Historie von Sofia Pro bereinigen? `marketing/wetter-reel.html` (Sofia Pro als Base64 eingebettet) und `tools/input/berge.jpg` (Lizenz unklar) im öffentlichen Repo lassen? Neue Screenshots fürs README freigeben. Copyright-Name in `LICENSE`. Open-Meteo nicht-kommerziell bestätigen. `allowBackup`. Play ja/nein.
 
 ## 11.11. 14:20: Phase 5 vorbereitet (Release v1.0.0), Schritt 3 offen
 - **Signing (`app/build.gradle`):** `signingConfigs.release` liest `keystore.properties` (gitignored, Vorlage `keystore.properties.example`) oder die Umgebungsvariablen `WW_KEYSTORE_FILE`, `WW_KEYSTORE_PASSWORD`, `WW_KEY_ALIAS`, `WW_KEY_PASSWORD`. Ohne beides entsteht `app-release-unsigned.apk`. `minifyEnabled false`.
