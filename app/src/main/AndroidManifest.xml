@@ -31,7 +31,11 @@
             </intent-filter>
         </activity>
 
-        <activity android:name=".CropActivity" android:exported="false" />
+        <!-- Ab targetSdk 36 ruft das System onBackPressed() nicht mehr auf. CropActivity sperrt damit „Zurück“,
+             solange gerechnet wird; deshalb hier die vorausschauende Zurück-Geste abwählen.
+             ponytail: Opt-out, später auf OnBackPressedCallback umstellen, falls Android es streicht. -->
+        <activity android:name=".CropActivity" android:exported="false"
+            android:enableOnBackInvokedCallback="false" />
 
         <!-- Favoriten als .zip teilen -->
         <provider
