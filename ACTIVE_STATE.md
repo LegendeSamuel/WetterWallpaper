@@ -1,8 +1,15 @@
 # ACTIVE_STATE
 
-**Last Updated:** 2026-11-11 14:14
+**Last Updated:** 2026-11-11 14:16
 **Active Agent:** Claude Code (Fable 5.2)
-**Current Goal:** Repo auf Portfolio-Stand bringen (Plan A, Phasen 0–5) und Play Store vorbereiten (Plan B, Phase 6). Keine Funktionsänderungen an der App. Phasen 0 bis 2 sind fertig, als Nächstes Phase 3 (Selbsttests als JUnit, GitHub Actions).
+**Current Goal:** Repo auf Portfolio-Stand bringen (Plan A, Phasen 0–5) und Play Store vorbereiten (Plan B, Phase 6). Keine Funktionsänderungen an der App. Phasen 0 bis 3 sind fertig, als Nächstes Phase 4 (README).
+
+## 11.11. 14:16: Phase 3 fertig (Tests und CI)
+- **JUnit:** `app/src/test/java/de/seelig/wetterwallpaper/SelfTests.java` ruft die `main`-Selbsttests von 14 Klassen auf (DayNight, EdgeRefine, FontFamilies, Frost, GradientStops, Guides, PhotoColors, Presets, RainOnGlass, SkyMask, SkyPosition, SkyTimes, Vegetation, Weather). Keine Logik kopiert. `ClockRenderer.main` ist nicht dabei, die gibt nur Text aus und prüft nichts. Neu in `app/build.gradle`: `testImplementation 'junit:junit:4.13.2'`.
+- **Geprüft:** `./gradlew testDebugUnitTest` → 14 Tests, 0 Fehler.
+- **CI:** `.github/workflows/ci.yml` (JDK 17 Temurin, `gradle/actions/setup-gradle@v4` als Cache, `./gradlew testDebugUnitTest assembleDebug` bei Push und PR, APK als Artefakt). **Noch nicht gelaufen**, weil nichts gepusht ist; lokal gibt es kein JDK 17, gebaut wurde mit JBR 21.
+- **Echter `git clone`** in einen Ordner außerhalb von OneDrive: Klonen 1 s, `./gradlew assembleDebug` mit kaltem Daemon 39 s (Gradle- und Abhängigkeits-Cache warm).
+- **Fund:** `origin/main` enthält ein README.md aus PR #1 vom 08.11., das lokal fehlte. Wird per Merge übernommen.
 
 ## 11.11. 14:14: Phase 2 fertig (reproduzierbarer Build)
 - **Gradle-Wrapper** für 8.13 im Repo (`gradlew`, `gradlew.bat`, `gradle/wrapper/*`), `gradlew` mit Ausführungsbit im Index.
@@ -11,7 +18,7 @@
 - **Nicht gemessen:** Ein Rechner ohne Gradle-Cache lädt zusätzlich Gradle 8.13, AGP und die ONNX Runtime herunter; die Zeit dafür liefert der erste CI-Lauf in Phase 3.
 - **AGENTS.md:** Build-Kommando auf den Wrapper umgestellt.
 
-## 11.11. 14:40: Phase 1 fertig (Schrift, Lizenzen, Repo-Hygiene)
+## 11.11. 14:10: Phase 1 fertig (Schrift, Lizenzen, Repo-Hygiene)
 - **Entscheidungen:** Lizenz des Codes = MIT (`LICENSE`, Inhaber „Samuel Seelig“, vom User noch zu bestätigen). Debuggable-Zahl (3× oder 10×) wird später am Gerät gemessen, bis dahin keine Zahl im README.
 - **Schrift:** Lexend 200–700 als statische TTF in `res/font/lexend_*.ttf` (aus `googlefonts/lexend`, Commit 7894f02b2e), `licenses/OFL-Lexend.txt`. `res/font/app_sans.xml` ersetzt `sofia_pro.xml`, `themes.xml` zeigt an 33 Stellen darauf. Im Java-Code gab es keinen Verweis auf die UI-Schrift; `FontFamilies` (Schriften des Users) ist unberührt.
 - **Sofia Pro:** 6 .otf liegen jetzt in `../_fonts/SofiaPro/` (außerhalb des Repos), aus dem Index entfernt, `.gitignore` sperrt `**/sofiapro_*.otf` und `**/SofiaPro*`. In `local.properties` steht lokal `brandFonts.dir=../_fonts/SofiaPro`.
