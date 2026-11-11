@@ -9,7 +9,7 @@
 - **Branch `play-prep`** (= `main` + 1 Commit): compileSdk/targetSdk 36, AGP 8.13.2, `CropActivity` mit `android:enableOnBackInvokedCallback="false"` (ab targetSdk 36 wird `onBackPressed()` sonst nicht mehr aufgerufen). Tests grün, `assembleDebug`, `assembleRelease` und `bundleRelease` laufen (AAB etwa 63 MB). **Nicht am Gerät getestet.** `main` bleibt bei SDK 34 / AGP 8.7.3.
 - **Im Code geprüft:** Edge-to-edge ist schon umgesetzt, kein Foreground-Service, kein `scheduleAtFixedRate`, native Bibliotheken 16-KB-ausgerichtet. Tabelle in `docs/play/checklist.md`.
 - **`docs/play/`:** `privacy-policy.md` (Entwurf DE+EN mit Platzhaltern), `data-safety.md`, `store-listing.md` (DE+EN), `checklist.md`.
-- **Nichts gepusht, nichts hochgeladen.** `main` ist 8 Commits vor `origin/main`, `play-prep` existiert nur lokal. Die CI ist deshalb noch nie gelaufen.
+- **Nichts gepusht, nichts hochgeladen.** `main` ist `origin/main` um die Commits dieser Sitzung voraus, `play-prep` existiert nur lokal. Die CI ist deshalb noch nie gelaufen.
 
 ### Nächste Schritte
 1. User: pushen (`git push origin main`, `git push -u origin play-prep`), ersten CI-Lauf ansehen.
