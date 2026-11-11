@@ -70,7 +70,7 @@ flowchart LR
 
 **Image processing is plain Java, with no custom shaders.** Frost, rain on glass, edge refinement, the sky mask and the vegetation detection are plain Java classes without Android imports. They compile and run on a PC and are tested there (`tools/pc_harness` and the JUnit tests in CI), without a phone. Expensive results are computed once in the background and cached as bitmaps. Drawing uses a hardware-accelerated `Canvas`; the blur behind the frost uses `RenderNode` and `RenderEffect` and needs Android 12 or later.
 
-**The debug build is not debuggable.** ART optimises debuggable apps far less, and the per-pixel loops of the scene computation then run several times slower, which makes the app unpleasant to test. Logcat and `adb install` still work; attaching a debugger and `run-as` do not.
+**The debug build is not debuggable.** ART optimises debuggable apps far less, and the per-pixel loops of the scene computation then run two to three times slower (measured on a Galaxy S24 Ultra), which makes the app unpleasant to test. Logcat and `adb install` still work; attaching a debugger and `run-as` do not.
 
 **arm64 only.** `abiFilters 'arm64-v8a'` keeps the ONNX Runtime native libraries to one ABI. The APK is already about 70 MB because of the 50 MB depth model.
 

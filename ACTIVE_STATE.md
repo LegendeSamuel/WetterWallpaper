@@ -1,8 +1,23 @@
 # ACTIVE_STATE
 
-**Last Updated:** 2026-11-11 17:40
+**Last Updated:** 2026-11-11 23:55
 **Active Agent:** Claude Code (Fable 5.2)
 **Current Goal:** Repo auf Portfolio-Stand (Plan A) und Play-Vorbereitung (Plan B). Alle Phasen 0–6 sind so weit erledigt, wie es ohne Gerät und ohne Keystore geht, und gepusht; die CI ist grün. Offen sind Gerätetests, Signieren und die Entscheidungen des Users (siehe „Nächste Schritte“ im Eintrag zu Phase 6).
+
+## 11.11. 23:55: Gerätetest per adb (S24 Ultra, Android 17)
+- **Ablauf:** Test-APKs in Git-Worktrees außerhalb von OneDrive gebaut (ohne `brandFonts.dir`, also mit Lexend): `play-prep`, `main`, `main` debuggable. Am Ende ist der normale lokale Debug-Build von `main` mit Sofia Pro installiert (1.0.0, targetSdk 34, nicht debuggable). Die App-Version auf dem Handy war vorher 0.2 vom 30.10.
+- **Sicherung vor dem Test:** `../_backups/wetterwallpaper-handy-2026-11-11/` (94 Dateien aus `Android/data/…/files` plus `intern.tar` mit den SharedPreferences). Enthält private Fotos und Sofia Pro, nie veröffentlichen.
+- **Debuggable gemessen:** Summe beider Szenen direkt nach der Installation: debuggable 5,5 / 5,8 / 7,3 / 8,9 s (Mittel 6,9 s), nicht debuggable 3,3 / 3,4 / 3,5 s (Mittel 3,4 s). Also etwa Faktor 2. README, AGENTS.md und der Kommentar in `app/build.gradle` sind angepasst.
+- **Bestanden mit `play-prep` (targetSdk 36):** Start und Ränder; alle Blätter (Einstellungen, Modus, Galerie, Werkzeuggruppen) mit Lexend; Abschnitt „Info“; „Zurück“ im Zuschnitt während der Berechnung gesperrt, danach frei; Photo Picker öffnet; Speichern nur Sperr- bzw. nur Startbildschirm; Termin-Widget; zweite Uhr hinzufügen und ziehen; Reihenfolge per Ziehen am Griff.
+- **Standort im Hintergrund:** Berechtigung steht auf „nur während der Nutzung“. Bei geschlossener App läuft der Prozess als gebundener Vordergrunddienst (procState 5) mit Standort-Fähigkeit; nach einem Neustart des Prozesses ohne geöffnete App wurde der Standort gelesen und das Wetter geholt. `ACCESS_BACKGROUND_LOCATION` war dafür nicht nötig.
+- **Funde (nichts geändert, alles außerhalb des Auftrags „keine Funktionsänderungen“):**
+  1. Uhr über die Galerie als „Digitale Uhr“ wieder einschalten, wenn der gespeicherte Stil `column` war: Config und Vorschau sind digital, die Design-Chips unter „Inhalt“ zeigen weiter „Spalte“ samt dessen Unteroptionen (das Panel wird nach `WidgetManager.addOrEnable` nicht neu aufgebaut).
+  2. Beim Start des Dienstes stehen drei „Wetter aktualisiert“ innerhalb von 300 ms im Log, also drei gleichzeitige Abrufe statt einem.
+  3. Ist die Leiste eingeklappt, holt das Antippen eines Elements sie nicht zurück, nur ein Tipp auf eine leere Stelle.
+  4. Kosmetisch, mit Sofia Pro genauso: Favoriten-Kachel „Aktuelles s…“, „FOTO ÄNDERN“ zweizeilig und höher als „Ausschnitt“, Vorschau der Galerie-Kachel „Datum & Wetter“ seitlich abgeschnitten. Das Blatt „Reihenfolge“ ist so durchsichtig, dass die Leiste darunter durchscheint.
+- **Nicht getestet:** Neustart des Geräts (das Handy war in Benutzung), „Teilen → Wetter Wallpaper“ (per adb nicht möglich, die Rechtevergabe für das Bild wird verweigert), Skalieren per Zwei-Finger-Geste, „Beide“ beim Speichern, Sperrbildschirm selbst angesehen (hätte das Handy gesperrt), „Uhr vor einem Widget“ optisch (Reihenfolge wird gespeichert, die Elemente überlappten nicht).
+- **Zustand des Handys danach:** Start- und Sperrbildschirm stimmen per Prüfsumme mit der Sicherung überein. Im Editor liegt der Favorit mit dem Kiefern-Foto, den der User während des Tests selbst geladen hat; dessen Hintergrund wurde durch den Zuschnitt-Test einmal neu berechnet (gleiches Foto, gleicher Ausschnitt).
+- **Aufräumen offen:** `.git/worktrees/main` und `.git/worktrees/pp` sind leere Reste, die OneDrive beim Löschen gesperrt hat; `git worktree prune` später noch einmal ausführen.
 
 ## 11.11. 17:40: Sofia Pro aus der Git-Historie entfernt (Force-Push, vom User freigegeben)
 - **Entfernt aus allen Commits:** `app/src/main/res/font/sofiapro_*.otf` (6 Dateien) und `marketing/wetter-reel.html` (bettet Sofia Pro als Base64 ein). Umgeschrieben mit `git filter-branch --index-filter` in einem frischen Bare-Klon, dann Force-Push mit Lease auf `main`, `play-prep` und `docs/readme`.

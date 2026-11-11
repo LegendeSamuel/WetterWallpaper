@@ -19,7 +19,7 @@ abgerufen am 11.11.2026. Vor dem Einreichen noch einmal dort nachsehen.
 - [x] `./gradlew testDebugUnitTest assembleDebug assembleRelease bundleRelease` läuft durch
 - [x] AAB: `./gradlew bundleRelease` → `app/build/outputs/bundle/release/app-release.aab` (etwa 63 MB)
 - [x] Native Bibliotheken sind auf 16 KB ausgerichtet (`libonnxruntime.so`, `libonnxruntime4j_jni.so`: `p_align` 0x4000)
-- [ ] Am Gerät getestet (siehe unten)
+- [ ] Am Gerät getestet (siehe unten; offen sind nur noch Neustart und „Teilen“)
 - [ ] `play-prep` nach `main` übernommen
 
 ## Verhaltensänderungen, im Code geprüft
@@ -40,14 +40,16 @@ abgerufen am 11.11.2026. Vor dem Einreichen noch einmal dort nachsehen.
 
 ## Am Gerät testen (Build von `play-prep`)
 
-- [ ] App startet, Editor und alle Blätter sitzen richtig unter Statusleiste und über der Navigationsleiste
-- [ ] Zuschneiden: „Zurück“ während der Berechnung bleibt gesperrt, danach geht es wieder
-- [ ] Speichern auf Start- und Sperrbildschirm, einzeln und beide
+Getestet am 11.11.2026 per adb auf dem Galaxy S24 Ultra (Android 17). Screenshots liegen lokal in `tools/out/device-test/`.
+
+- [x] App startet, Editor und alle Blätter sitzen richtig unter Statusleiste und über der Navigationsleiste
+- [x] Zuschneiden: „Zurück“ während der Berechnung bleibt gesperrt (zweimal gedrückt, Activity blieb), danach geht es wieder
+- [x] Speichern nur auf Sperrbildschirm und nur auf Startbildschirm: der jeweils andere Stand bleibt unverändert (per Prüfsumme). „Beide“ nicht eigens getestet.
 - [ ] Wallpaper läuft nach Neustart des Geräts
-- [ ] Wetter aktualisiert sich, während die App geschlossen ist (Standort im Hintergrund)
-- [ ] Kalender-Freigabe und Widget „Nächster Termin“
-- [ ] Foto wählen über den Photo Picker und über „Teilen → Wetter Wallpaper“
-- [ ] Schrift: nichts abgeschnitten (Lexend)
+- [x] Wetter und Standort bei geschlossener App: Der Dienst läuft als gebundener Vordergrunddienst mit Standort-Berechtigung, liest den Standort und holt das Wetter (geprüft mit dem Build von `main`, Prozesszustand auch mit `play-prep`). Die Berechtigung steht auf „nur während der Nutzung“.
+- [x] Kalender-Freigabe und Widget „Nächster Termin“ (zeigt den Eintrag von heute)
+- [ ] Foto wählen: Der Photo Picker öffnet sich. „Teilen → Wetter Wallpaper“ lässt sich per adb nicht prüfen (Android verweigert adb die Rechtevergabe für das Bild), bitte von Hand aus der Galerie teilen.
+- [x] Schrift: nichts Wichtiges abgeschnitten (Lexend). Drei kosmetische Stellen, die es mit Sofia Pro genauso gibt: Favoriten-Kachel „Aktuelles s…“, „FOTO ÄNDERN“ zweizeilig, Vorschau der Galerie-Kachel „Datum & Wetter“ seitlich abgeschnitten.
 
 ## Schritte in der Play Console
 
