@@ -1,8 +1,13 @@
 # ACTIVE_STATE
 
-**Last Updated:** 2026-11-11 14:16
+**Last Updated:** 2026-11-11 14:18
 **Active Agent:** Claude Code (Fable 5.2)
-**Current Goal:** Repo auf Portfolio-Stand bringen (Plan A, Phasen 0–5) und Play Store vorbereiten (Plan B, Phase 6). Keine Funktionsänderungen an der App. Phasen 0 bis 3 sind fertig, als Nächstes Phase 4 (README).
+**Current Goal:** Repo auf Portfolio-Stand bringen (Plan A, Phasen 0–5) und Play Store vorbereiten (Plan B, Phase 6). Keine Funktionsänderungen an der App. Phasen 0 bis 4 sind fertig, als Nächstes Phase 5 (Release v1.0.0: Signing, Version, CHANGELOG).
+
+## 11.11. 14:18: Phase 4 fertig (README)
+- **README.md** neu auf Englisch mit deutscher Kurzfassung, ersetzt das deutsche README aus PR #1 (dessen Stand per Merge von `origin/main` lokal ankam). Aufbau: ein Satz, Features, Architektur (zwei Mermaid-Diagramme: Komponenten, Settings-Ebenen Tag → Modus → Bildschirm), technische Entscheidungen, Build, Grenzen, Lizenz. CI-Badge oben.
+- **Keine Bilder im README.** Die vorhandenen Geräte-Screenshots in `tools/out` zeigen eine fremde, vermutlich urheberrechtlich geschützte Illustration als Hintergrund, die alte Sofia-Pro-Oberfläche und (`geraet_sperrbildschirm_nacht.png`) die Mailadresse des Users. Im README steht nur ein HTML-Kommentar als Platzhalter. Neue Screenshots mit eigenem oder frei lizenziertem Foto und Lexend-Build nötig, Freigabe durch den User.
+- **Vom User zu prüfen:** Die Begründungen „reines Java statt Shader“ und „warum Open-Meteo“ standen nirgends im Projekt. Im README stehen dafür nur Punkte, die der Code belegt (PC-Tests ohne Gerät; kein API-Schlüssel, Koordinaten auf zwei Nachkommastellen). Für debuggable steht „several times slower“ ohne Zahl.
 
 ## 11.11. 14:16: Phase 3 fertig (Tests und CI)
 - **JUnit:** `app/src/test/java/de/seelig/wetterwallpaper/SelfTests.java` ruft die `main`-Selbsttests von 14 Klassen auf (DayNight, EdgeRefine, FontFamilies, Frost, GradientStops, Guides, PhotoColors, Presets, RainOnGlass, SkyMask, SkyPosition, SkyTimes, Vegetation, Weather). Keine Logik kopiert. `ClockRenderer.main` ist nicht dabei, die gibt nur Text aus und prüft nichts. Neu in `app/build.gradle`: `testImplementation 'junit:junit:4.13.2'`.

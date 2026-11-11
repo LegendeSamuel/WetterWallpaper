@@ -1,99 +1,123 @@
 # Wetter Wallpaper
 
-Android-Live-Wallpaper, das aus einem beliebigen Foto eine lebendige Wetterszene macht. Die App schätzt auf dem Gerät die Tiefe des Fotos, trennt Himmel, Landschaft und Motiv und legt darüber echtes Wetter, Tageszeit, Jahreszeit und frei gestaltbare Widgets.
+[![CI](https://github.com/LegendeSamuel/WetterWallpaper/actions/workflows/ci.yml/badge.svg)](https://github.com/LegendeSamuel/WetterWallpaper/actions/workflows/ci.yml)
 
-Entwickelt und getestet auf dem Samsung Galaxy S24 Ultra (One UI, arm64).
+An Android live wallpaper that turns any photo into a scene with live weather, time of day and season, using on-device depth estimation to place the clock and effects between the layers of the photo.
 
-## Funktionen
+> **Kurzfassung (Deutsch):** Android-Live-Wallpaper, das aus einem beliebigen Foto eine Wetterszene macht. Die App schätzt auf dem Gerät die Tiefe des Fotos (Depth Anything V2 Small über ONNX Runtime), trennt Himmel, Landschaft und Motiv und legt darüber das aktuelle Wetter von Open-Meteo, Tageszeit, Jahreszeit und frei gestaltbare Widgets. Das Foto verlässt das Gerät nicht. Entwickelt und getestet auf dem Samsung Galaxy S24 Ultra.
 
-**Szene aus dem Foto**
-- Tiefenschätzung on-device mit *Depth Anything V2 Small* über ONNX Runtime, kein Upload des Fotos
-- Himmelsmaske, Tiefen-Clustering, Dunst und Pflanzen-Ebene (`Scene`, `SkyMask`, `EdgeRefine`, `Vegetation`)
-- Himmel nach Tageszeit mit Sonne, Mond und Sternen, weich ins Foto überblendet (Regler „Übergang zum Himmel“)
+<!-- Screenshots / GIF: folgen nach Freigabe. -->
 
-**Wetter**
-- Live-Daten von [Open-Meteo](https://open-meteo.com/) (Wetter und Luftqualität), Standort grob über das Netz
-- Partikel für Regen, Schnee, Gewitter, Nebel, dazu Kirschblüten und Herbstlaub je nach Jahreszeit
-- Fensterscheibe vor der Szene: Eisblumen wachsen ab etwa 1 °C vom Rand herein, Regentropfen wirken als Linse und laufen ruckweise herunter, danach trocknet die Scheibe
+## Features
 
-**Tageszeiten und Modi**
-- Tag, Morgen- und Abenddämmerung, Nacht, Regen-Look und eigene Zeiträume
-- Wechsel nach Sonnenstand oder festen Uhrzeiten, mit einstellbarem Übergang
-- Jeder Modus erbt vom Tag und speichert nur Abweichungen; Foto pro Modus möglich
-- Start- und Sperrbildschirm getrennt gestaltbar
+**Live weather**
+- Current weather and air quality from [Open-Meteo](https://open-meteo.com/), based on the approximate location
+- Particle systems for rain, snow, fog and thunderstorms
+- Weather changes the photo only through colour grading, never by repainting it
+
+**On-device depth**
+- Depth estimation with *Depth Anything V2 Small* through ONNX Runtime; the photo is never uploaded
+- Depth clustering, sky mask, haze and a vegetation layer are derived from the depth map
+- The clock can sit behind the subject of the photo
+
+**Window pane**
+- A pane of glass in front of the scene, above the clock
+- Frost ferns grow in from the edges below about 1 °C and cover the pane at −7 °C; the scene behind the frost is blurred (Android 12+)
+- Raindrops act as lenses that show the photo upside down, run down in jerks and leave a trail; after the rain the pane dries in about three minutes
+
+**Time of day and seasons**
+- Sky by time of day with sun, moon and stars, blended softly into the photo
+- Modes for day, dawn, dusk, night, a rain look and custom time ranges, switched by sun position or fixed times
+- Four seasons with their own colour mood and particles (cherry blossom, autumn leaves)
 
 **Editor**
-- Vollbild-Vorschau, Elemente per Drag & Drop, Größe und Drehung mit zwei Fingern
-- Uhr in mehreren Stilen (u. a. zweizeilig, Spalte) und Widgets: Datum und Wetter, Temperatur, Regen, Stundenvorschau, Woche, Mondphase, Sonnenbogen, goldene Stunde, Sterne, Luftqualität, Akku, Countdown, nächster Termin, Zeitzone, freier Text
-- Text-Füllungen (Farbe, Verlauf, Glas, Bild), Kontur, Schatten, Leuchten, Neon
-- Farbwähler im Photoshop-Stil, Farben aus dem Foto, gemerkte Farben
-- Rückgängig und Wiederholen, Ebenen-Reihenfolge
-- Favoriten speichern sowie als ZIP teilen und importieren
+- Full-screen preview, drag and drop, size and rotation with two fingers, snapping guides
+- Text fills (colour, gradient, glass, photo), outline, shadow, glow, neon
+- Colour picker with colours sampled from the photo
+- Undo and redo, layer order, favourites that can be shared as a ZIP file
+- Home screen and lock screen can be designed and saved separately (Android 14+)
 
-## Voraussetzungen
+**Widgets**
+- Clock in several styles (including two-line and column)
+- Date and weather, temperature, rain, hourly forecast, week, moon phase, sun arc, golden hour, stars, air quality, battery, countdown, next calendar event, time zone, free text
 
-| | |
-|---|---|
-| Android | ab 10 (minSdk 29), Unschärfe hinter dem Frost ab Android 12 |
-| Architektur | nur `arm64-v8a` |
-| Build | Android Studio (JBR, Java 17), Gradle 8.13 |
-| Berechtigungen | Internet, ungefährer Standort, Kalender (für das Termin-Widget) |
+## Architecture
 
-## Bauen und installieren
+```mermaid
+flowchart TD
+    Svc["WeatherWallpaperService<br/>(WallpaperService)"] --> R[WallpaperRenderer]
+    Ed["MainActivity + PreviewView<br/>(editor)"] --> R
+    R --> Sc["Scene<br/>layers, sky mask, haze, vegetation"]
+    Sc --> D["DepthEstimator<br/>ONNX Runtime, depth.onnx"]
+    R --> Fx["WeatherFx<br/>rain, snow, fog, lightning, seasonal particles"]
+    R --> G["WindowGlass<br/>Frost, RainOnGlass"]
+    R --> W["ClockRenderer, InfoWidgets, TextLayer"]
+    WS["WeatherSource<br/>Open-Meteo"] --> Wx[Weather] --> R
+    Ed -- "Save" --> P["Published<br/>published/lock, published/home"]
+    P --> Svc
+```
 
-Im Repository liegt kein Gradle-Wrapper. Gebaut wird mit einer lokalen Gradle-8.13-Installation (oder direkt aus Android Studio):
+The same `WallpaperRenderer` draws the live wallpaper and the editor preview. The editor works on its own copy of the configuration; only "Save" copies it to the folder the wallpaper service reads, so editing never changes the running wallpaper.
+
+Settings are stored in one `config.json` in layers. Each layer stores only what differs from the layer below:
+
+```mermaid
+flowchart LR
+    Day["Day<br/>(root object)"] --> Mode["modes.&lt;id&gt;<br/>differences per mode"] --> Screen["screens.home<br/>differences on the home screen"] --> Eff["Settings.resolve()<br/>effective configuration"]
+```
+
+## Technical decisions
+
+**Plain Java image processing instead of shaders.** Frost, rain on glass, edge refinement, the sky mask and the vegetation detection are plain Java without Android dependencies. They compile and run on a PC, which is how they are tested (`tools/pc_harness` and the JUnit tests in CI) without a phone. Expensive results are computed once in the background and cached as bitmaps; drawing uses a hardware-accelerated `Canvas`, and the blur behind the frost uses `RenderNode` and `RenderEffect`.
+
+**The debug build is not debuggable.** ART optimises debuggable apps far less, and the per-pixel loops of the scene computation then run several times slower, which makes the app unpleasant to test. Logcat and `adb install` still work; attaching a debugger and `run-as` do not.
+
+**arm64 only.** `abiFilters 'arm64-v8a'` keeps the ONNX Runtime native libraries to one ABI. The APK is already about 70 MB because of the 50 MB depth model.
+
+**Open-Meteo as the weather source.** It needs no API key or account, provides weather and air quality from one provider, and publishes its data under CC BY 4.0. Only the coordinates, rounded to two decimal places, are sent. The free API is limited to non-commercial use.
+
+## Build
+
+Requirements: JDK 17 or newer and the Android SDK (platform 34). The Gradle wrapper is included.
 
 ```bash
-gradle assembleDebug --offline
+git clone https://github.com/LegendeSamuel/WetterWallpaper.git
+cd WetterWallpaper
+./gradlew assembleDebug          # Windows: gradlew.bat assembleDebug
 adb install -r app/build/outputs/apk/debug/app-debug.apk
-adb shell "am start -n de.seelig.wetterwallpaper/.MainActivity"
 ```
 
-Danach in den Android-Einstellungen „Wetter Wallpaper“ als Live-Hintergrund wählen.
+Gradle needs to know where the SDK is: either set `ANDROID_HOME`, or create `local.properties` with `sdk.dir=…` (Android Studio does this on first open). Then pick "Wetter Wallpaper" as live wallpaper in the system settings, or use "Save" in the app.
 
-Hinweise:
-- Der `debug`-Build ist absichtlich nicht debuggable. Sonst rechnet die Szene etwa dreimal so lange.
-- Liegt das Projekt in OneDrive, sperrt OneDrive `app/build`. Dann mit `-I tools/outside-build.gradle` bauen, der Build-Ordner liegt dann unter `%LOCALAPPDATA%\WetterWallpaperBuild`.
+Tests run on the JVM, without a device:
 
-## Projektstruktur
-
-```
-app/src/main/
-├── java/de/seelig/wetterwallpaper/
-│   ├── WeatherWallpaperService.java   Live-Wallpaper-Service
-│   ├── WallpaperRenderer.java         Rendering-Pipeline für Wallpaper und Vorschau
-│   ├── MainActivity.java              Editor
-│   ├── Scene.java, DepthEstimator.java, SkyMask.java, EdgeRefine.java
-│   ├── WeatherSource.java, Weather.java, Forecast.java, WeatherFx.java
-│   ├── WindowGlass.java, Frost.java, RainOnGlass.java
-│   ├── DayNight.java, SkyTimes.java, SkyPosition.java, Season.java
-│   ├── Settings.java, Presets.java    Konfiguration (config.json, Modus-Ebenen)
-│   └── …                              Widgets, Panels, Farbwähler, Crop
-├── assets/depth.onnx                  Tiefenmodell (~48 MB)
-└── res/                               Layouts, Icons, Schrift
-tools/
-├── pc_harness/                        PC-Vorschau und Selbsttests der Bildverarbeitung
-└── split_layers.py                    Foto per Tiefe in Vorder- und Hintergrund zerlegen
-marketing/                             Video-Prompt und Reel für Social Media
+```bash
+./gradlew testDebugUnitTest
 ```
 
-## Tests ohne Handy
+Notes:
+- If the project folder is synced by OneDrive, OneDrive may lock `app/build`. Build with `./gradlew -I tools/outside-build.gradle assembleDebug`; the output then goes to `%LOCALAPPDATA%\WetterWallpaperBuild`.
+- `tools/pc_harness/run.ps1` renders preview images of the image processing on a PC.
 
-Die Bildverarbeitung (`EdgeRefine`, `Frost`, `RainOnGlass`, `Vegetation`) ist reines Java mit eingebauten Selbsttests. `tools/pc_harness/run.ps1` kompiliert sie, führt die Tests aus und rendert Vorschaubilder für einen Testsatz:
+## Limits and known issues
 
-```powershell
-py -I tools\pc_harness\make_set.py ..\ <foto.jpg> <zielordner>   # Testsatz erzeugen (numpy, onnxruntime, Pillow)
-.\tools\pc_harness\run.ps1 <zielordner>
-```
+- Tested only on a Samsung Galaxy S24 Ultra with One UI. Other devices and launchers are untested.
+- arm64 devices only, Android 10 or newer. The blur behind the frost needs Android 12, saving home and lock screen separately needs Android 14.
+- One UI does not allow hiding the system clock on the lock screen, so the wallpaper clock would appear in addition to it. Workaround: in Samsung Good Lock → LockStar, create a clock design, choose the weather element as "clock" and hide it.
+- Computing the scene for a new photo takes several seconds on the S24 Ultra.
+- Additional clocks have no format options yet, and an additional "date and weather" widget is always a single line.
+- The user interface is in German only.
 
-## Für Mitwirkende und Agents
+## License and acknowledgements
 
-- [`AGENTS.md`](AGENTS.md): Architektur, Build-Befehle, Regeln für Gerätetests
-- [`ACTIVE_STATE.md`](ACTIVE_STATE.md): aktueller Stand und nächste Schritte, wird nach jeder Iteration aktualisiert
-
-## Drittanbieter
+The code is released under the [MIT License](LICENSE).
 
 - [ONNX Runtime](https://github.com/microsoft/onnxruntime) (MIT)
-- [Depth Anything V2 Small](https://github.com/DepthAnything/Depth-Anything-V2) (Apache 2.0)
-- Wetterdaten: [Open-Meteo](https://open-meteo.com/) (CC BY 4.0)
-- Schrift Sofia Pro: kommerzielle Schrift, Lizenz des Herstellers
+- [Depth Anything V2 Small](https://github.com/DepthAnything/Depth-Anything-V2) by Lihe Yang et al. (Apache-2.0), ONNX export from [onnx-community](https://huggingface.co/onnx-community/depth-anything-v2-small)
+- Weather data by [Open-Meteo.com](https://open-meteo.com/) (CC BY 4.0)
+- [Lexend](https://github.com/googlefonts/lexend) font (SIL OFL 1.1)
+- AndroidX and Material Components for Android (Apache-2.0)
+
+Details, versions and licence texts: [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md).
+
+For contributors and coding agents: [AGENTS.md](AGENTS.md) describes the architecture and build rules in German, [ACTIVE_STATE.md](ACTIVE_STATE.md) is the working log.
