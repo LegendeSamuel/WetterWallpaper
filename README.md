@@ -68,13 +68,13 @@ flowchart LR
 
 ## Technical decisions
 
-**Plain Java image processing instead of shaders.** Frost, rain on glass, edge refinement, the sky mask and the vegetation detection are plain Java without Android dependencies. They compile and run on a PC, which is how they are tested (`tools/pc_harness` and the JUnit tests in CI) without a phone. Expensive results are computed once in the background and cached as bitmaps; drawing uses a hardware-accelerated `Canvas`, and the blur behind the frost uses `RenderNode` and `RenderEffect`.
+**Image processing is plain Java, with no custom shaders.** Frost, rain on glass, edge refinement, the sky mask and the vegetation detection are plain Java classes without Android imports. They compile and run on a PC and are tested there (`tools/pc_harness` and the JUnit tests in CI), without a phone. Expensive results are computed once in the background and cached as bitmaps. Drawing uses a hardware-accelerated `Canvas`; the blur behind the frost uses `RenderNode` and `RenderEffect` and needs Android 12 or later.
 
 **The debug build is not debuggable.** ART optimises debuggable apps far less, and the per-pixel loops of the scene computation then run several times slower, which makes the app unpleasant to test. Logcat and `adb install` still work; attaching a debugger and `run-as` do not.
 
 **arm64 only.** `abiFilters 'arm64-v8a'` keeps the ONNX Runtime native libraries to one ABI. The APK is already about 70 MB because of the 50 MB depth model.
 
-**Open-Meteo as the weather source.** It needs no API key or account, provides weather and air quality from one provider, and publishes its data under CC BY 4.0. Only the coordinates, rounded to two decimal places, are sent. The free API is limited to non-commercial use.
+**Weather data comes from Open-Meteo.** The app calls its forecast and air-quality endpoints without an API key or account. The requests carry the coordinates rounded to two decimal places (about 1 km); the app adds no other identifier. The data is licensed under CC BY 4.0, and the free API is limited to non-commercial use.
 
 ## Build
 
