@@ -1,21 +1,35 @@
 # ACTIVE_STATE
 
-**Last Updated:** 2026-11-11 14:28
+**Last Updated:** 2026-11-11 17:40
 **Active Agent:** Claude Code (Fable 5.2)
-**Current Goal:** Repo auf Portfolio-Stand (Plan A) und Play-Vorbereitung (Plan B). Alle Phasen 0–6 sind so weit erledigt, wie es ohne Gerät, ohne Keystore und ohne Push geht. Offen sind Gerätetests, Signieren, Push und die Entscheidungen des Users (siehe oberster Eintrag).
+**Current Goal:** Repo auf Portfolio-Stand (Plan A) und Play-Vorbereitung (Plan B). Alle Phasen 0–6 sind so weit erledigt, wie es ohne Gerät und ohne Keystore geht, und gepusht; die CI ist grün. Offen sind Gerätetests, Signieren und die Entscheidungen des Users (siehe „Nächste Schritte“ im Eintrag zu Phase 6).
+
+## 11.11. 17:40: Sofia Pro aus der Git-Historie entfernt (Force-Push, vom User freigegeben)
+- **Entfernt aus allen Commits:** `app/src/main/res/font/sofiapro_*.otf` (6 Dateien) und `marketing/wetter-reel.html` (bettet Sofia Pro als Base64 ein). Umgeschrieben mit `git filter-branch --index-filter` in einem frischen Bare-Klon, dann Force-Push mit Lease auf `main`, `play-prep` und `docs/readme`.
+- **Alle Commit-Hashes sind neu.** Hashes in älteren Einträgen dieser Datei (z. B. 3f20ce1, 81158b6, 65839cf, a64282f) gelten nicht mehr. Neu: `main` 3cb62cf (vor diesem Commit), `play-prep` 4300841, `docs/readme` 2c45300. Geprüft: 18 Commits wie vorher, Autor/Datum/Betreff identisch, einziger Inhaltsunterschied sind die sieben Dateien.
+- **Alte Commits bauen nicht mehr** (vor Phase 1 fehlen ihnen die Schriftdateien, auf die `sofia_pro.xml` verweist). Ab Phase 1 unverändert.
+- **`marketing/wetter-reel.html`** liegt weiter lokal an derselben Stelle, ist jetzt aber gitignored.
+- **Sicherung des alten Stands:** `../_backups/WetterWallpaper-vor-bereinigung-2026-11-11.bundle` (enthält Sofia Pro, nie veröffentlichen) und `../_backups/wetter-reel.html`.
+- **Noch öffentlich erreichbar:** GitHub hält für PR #1 den Verweis `refs/pull/1/head` auf den alten Commit 8d020a6 (mit den Schriftdateien); der lässt sich nicht per Push ändern. Dazu sind die alten Commits über ihren Hash abrufbar, bis GitHub aufräumt. **User:** beim GitHub-Support die Entfernung beantragen (https://support.github.com/request, Thema „Removing sensitive data“ für `LegendeSamuel/WetterWallpaper`, PR #1 und die alten Hashes nennen).
+- **Andere Klone:** Wer noch einen alten Klon hat (z. B. ein anderer Agent oder Rechner), darf daraus nicht mehr pushen, sondern muss neu klonen oder `git fetch` + `git reset --hard origin/main` ausführen.
+
+## 11.11. 15:45: Gepusht, erster CI-Lauf grün
+- Nach Freigabe des Users im Chat: `git push origin main` (9d5ae93 → 65839cf, Fast-Forward, kein Force) und `git push -u origin play-prep` (neuer Branch).
+- **CI grün auf beiden Branches.** `main`: Lauf 43040941175, gesamt 1 min 56 s; davon `./gradlew testDebugUnitTest assembleDebug` 81 s auf einem Runner ohne Gradle-Cache (lädt Gradle 8.13, AGP, ONNX Runtime). `play-prep`: Lauf 43040941391, gesamt 2 min 18 s. Das Debug-APK hängt als Artefakt am Lauf.
+- Punkt 1 der „Nächsten Schritte“ unten ist damit erledigt. Punkte 2 bis 4 sind offen.
 
 ## 11.11. 14:28: Phase 6 vorbereitet (Play Store), Stand am Ende der Sitzung
 - **Regeln an der Quelle geprüft (11.11.2026):** Neue Apps und Updates müssen seit 31.08.2026 auf API 36 zielen. Private Konten (nach 13.11.2023 angelegt): geschlossener Test mit mindestens 12 Testern, 14 Tage ununterbrochen. Quellen stehen in `docs/play/checklist.md`.
 - **Branch `play-prep`** (= `main` + 1 Commit): compileSdk/targetSdk 36, AGP 8.13.2, `CropActivity` mit `android:enableOnBackInvokedCallback="false"` (ab targetSdk 36 wird `onBackPressed()` sonst nicht mehr aufgerufen). Tests grün, `assembleDebug`, `assembleRelease` und `bundleRelease` laufen (AAB etwa 63 MB). **Nicht am Gerät getestet.** `main` bleibt bei SDK 34 / AGP 8.7.3.
 - **Im Code geprüft:** Edge-to-edge ist schon umgesetzt, kein Foreground-Service, kein `scheduleAtFixedRate`, native Bibliotheken 16-KB-ausgerichtet. Tabelle in `docs/play/checklist.md`.
 - **`docs/play/`:** `privacy-policy.md` (Entwurf DE+EN mit Platzhaltern), `data-safety.md`, `store-listing.md` (DE+EN), `checklist.md`.
-- **Nichts gepusht, nichts hochgeladen.** `main` ist 8 Commits vor `origin/main`, `play-prep` existiert nur lokal. Die CI ist deshalb noch nie gelaufen.
+- **Nichts gepusht, nichts hochgeladen.** `main` ist `origin/main` um die Commits dieser Sitzung voraus, `play-prep` existiert nur lokal. Die CI ist deshalb noch nie gelaufen.
 
 ### Nächste Schritte
 1. User: pushen (`git push origin main`, `git push -u origin play-prep`), ersten CI-Lauf ansehen.
 2. Handy per USB-Debugging: Lexend-Check auf Abschneiden mit Screenshots nach `tools/out/font-check/`, Abschnitt „Info“ ansehen, Debuggable-Messung (3× oder 10×), Gerätetests aus `docs/play/checklist.md` mit dem Build von `play-prep`.
 3. User: Release-Keystore anlegen, signiertes APK testen, Release-Draft v1.0.0 (Befehle im Eintrag zu Phase 5).
-4. Entscheidungen des Users: Git-Historie von Sofia Pro bereinigen? `marketing/wetter-reel.html` (Sofia Pro als Base64 eingebettet) und `tools/input/berge.jpg` (Lizenz unklar) im öffentlichen Repo lassen? Neue Screenshots fürs README freigeben. Copyright-Name in `LICENSE`. Open-Meteo nicht-kommerziell bestätigen. `allowBackup`. Play ja/nein.
+4. Entscheidungen des Users: (Git-Historie und `marketing/wetter-reel.html` sind erledigt, siehe Eintrag 17:40.) `tools/input/berge.jpg` (Lizenz unklar) im öffentlichen Repo lassen? Neue Screenshots fürs README freigeben. Copyright-Name in `LICENSE`. Open-Meteo nicht-kommerziell bestätigen. `allowBackup`. Play ja/nein.
 
 ## 11.11. 14:20: Phase 5 vorbereitet (Release v1.0.0), Schritt 3 offen
 - **Signing (`app/build.gradle`):** `signingConfigs.release` liest `keystore.properties` (gitignored, Vorlage `keystore.properties.example`) oder die Umgebungsvariablen `WW_KEYSTORE_FILE`, `WW_KEYSTORE_PASSWORD`, `WW_KEY_ALIAS`, `WW_KEY_PASSWORD`. Ohne beides entsteht `app-release-unsigned.apk`. `minifyEnabled false`.
