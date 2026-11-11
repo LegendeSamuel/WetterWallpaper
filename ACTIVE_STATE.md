@@ -1,8 +1,13 @@
 # ACTIVE_STATE
 
-**Last Updated:** 2026-11-11 14:28
+**Last Updated:** 2026-11-11 15:45
 **Active Agent:** Claude Code (Fable 5.2)
-**Current Goal:** Repo auf Portfolio-Stand (Plan A) und Play-Vorbereitung (Plan B). Alle Phasen 0–6 sind so weit erledigt, wie es ohne Gerät, ohne Keystore und ohne Push geht. Offen sind Gerätetests, Signieren, Push und die Entscheidungen des Users (siehe oberster Eintrag).
+**Current Goal:** Repo auf Portfolio-Stand (Plan A) und Play-Vorbereitung (Plan B). Alle Phasen 0–6 sind so weit erledigt, wie es ohne Gerät und ohne Keystore geht, und gepusht; die CI ist grün. Offen sind Gerätetests, Signieren und die Entscheidungen des Users (siehe „Nächste Schritte“ im Eintrag zu Phase 6).
+
+## 11.11. 15:45: Gepusht, erster CI-Lauf grün
+- Nach Freigabe des Users im Chat: `git push origin main` (9d5ae93 → 65839cf, Fast-Forward, kein Force) und `git push -u origin play-prep` (neuer Branch).
+- **CI grün auf beiden Branches.** `main`: Lauf 43040941175, gesamt 1 min 56 s; davon `./gradlew testDebugUnitTest assembleDebug` 81 s auf einem Runner ohne Gradle-Cache (lädt Gradle 8.13, AGP, ONNX Runtime). `play-prep`: Lauf 43040941391, gesamt 2 min 18 s. Das Debug-APK hängt als Artefakt am Lauf.
+- Punkt 1 der „Nächsten Schritte“ unten ist damit erledigt. Punkte 2 bis 4 sind offen.
 
 ## 11.11. 14:28: Phase 6 vorbereitet (Play Store), Stand am Ende der Sitzung
 - **Regeln an der Quelle geprüft (11.11.2026):** Neue Apps und Updates müssen seit 31.08.2026 auf API 36 zielen. Private Konten (nach 13.11.2023 angelegt): geschlossener Test mit mindestens 12 Testern, 14 Tage ununterbrochen. Quellen stehen in `docs/play/checklist.md`.
