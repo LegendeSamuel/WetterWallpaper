@@ -1,7 +1,7 @@
 # Wetter Wallpaper (Android Live Wallpaper)
 
 ## Projektübersicht
-Natives Java-Projekt für Samsung Galaxy S24 Ultra (One UI 8.5 / Android 16, API 36, targetSdk 35).
+Natives Java-Projekt, getestet auf dem Samsung Galaxy S24 Ultra (One UI 8.5 / Android 16, API 36). Build: compileSdk 34, targetSdk 34, minSdk 29, nur `arm64-v8a`, AGP 8.7.3, Gradle 8.13.
 Erstellt ein dynamisches Wetter-Live-Wallpaper aus einem beliebigen Foto mit On-Device-Tiefenberechnung (Depth Anything V2 Small via ONNX Runtime).
 
 ## Architektur & Kernkomponenten
@@ -16,6 +16,11 @@ Erstellt ein dynamisches Wetter-Live-Wallpaper aus einem beliebigen Foto mit On-
 - **`WeatherFx.java`**: Partikelsysteme für Regen, Schnee, Gewitterblitze, Nebel und saisonale Partikel.
 - **`PreviewView.java`**: Interaktive Vorschau mit unabhängigem Drag & Drop für Hauptuhr und Lockscreen-Subtitle-Widget.
 - **`DepthEstimator.java`**: ONNX Runtime Inferenz für `depth.onnx`.
+- **`WeatherWallpaperService.java`**: der Live-Wallpaper-Dienst. Liest den veröffentlichten Stand über `Published.forScreen` (home → lock → App-Ordner), rechnet die Szene des nächsten Modus vor.
+- **`Published.java`**: „Speichern“ kopiert den App-Ordner nach `published/lock` bzw. `published/home`. Bearbeiten ändert das laufende Wallpaper nicht.
+- **Widgets**: `WidgetManager` (anlegen, kopieren, Art wechseln), `InfoWidgets`/`WidgetParts` (Inhalt und Bausteine), `ClockRenderer` (Uhr-Stile), `TextLayer` (Füllung, Kontur, Glas).
+- **Wetter**: `WeatherSource` (Open-Meteo), `Weather`, `Forecast`, `LocationHelper` (grober Standort).
+- **Selbsttests**: `main`-Methoden in `ClockRenderer`, `DayNight`, `EdgeRefine`, `FontFamilies`, `Frost`, `GradientStops`, `Guides`, `PhotoColors`, `Presets`, `RainOnGlass`, `SkyMask`, `SkyPosition`, `SkyTimes`, `Vegetation`, `Weather`.
 
 ## Systemuhr auf dem Sperrbildschirm ausblenden (Workaround des Users, 15.10.2026)
 One UI erlaubt kein Abschalten der Systemuhr. Der User hat das so gelöst:
@@ -27,10 +32,10 @@ Formal ist dann eine Uhr gewählt, angezeigt wird aber nichts, und die Systemuhr
 
 ## Build & Test-Kommandos
 - **Java Home**: `C:\Program Files\Android\Android Studio\jbr`
-- **Gradle**: `~/.gradle/wrapper/dists/gradle-8.13-bin/*/gradle-8.13/bin/gradle assembleDebug --offline`. Läuft OneDrive, schützt es `app/build` gegen Schreiben und Gradle bricht mit AccessDenied ab. Dann OneDrive beenden und den Schreibschutz in `app/build` entfernen, oder mit `-I tools/outside-build.gradle` bauen (Build-Ordner liegt dann in `%LOCALAPPDATA%\WetterWallpaperBuild`).
+- **Gradle**: `~/.gradle/wrapper/dists/gradle-8.13-bin/*/gradle-8.13/bin/gradle assembleDebug` (`--offline` nur, wenn das AGP-Plugin schon im Gradle-Cache liegt; am 30.10. fehlte es). Läuft OneDrive, schützt es `app/build` gegen Schreiben und Gradle bricht mit AccessDenied ab. Dann OneDrive beenden und den Schreibschutz in `app/build` entfernen, oder mit `-I tools/outside-build.gradle` bauen (Build-Ordner liegt dann in `%LOCALAPPDATA%\WetterWallpaperBuild`).
 - **ADB**: `C:\Users\flapp\AppData\Local\Android\Sdk\platform-tools\adb.exe`
 - **Build-Typ**: `debug` ist absichtlich `debuggable false`. Debuggable rechnet die Szene etwa 3x langsamer (18 s statt 6 s auf dem S24). Log und `adb` funktionieren trotzdem.
-- **APK Installieren**: `adb install -r app/build/outputs/apk/debug/app-debug.apk` (beim Bauen mit dem Init-Skript liegt sie in `%LOCALAPPDATA%\WetterWallpaperBuildpp\outputspk\debug\`)
+- **APK Installieren**: `adb install -r app/build/outputs/apk/debug/app-debug.apk` (beim Bauen mit dem Init-Skript liegt sie in `%LOCALAPPDATA%\WetterWallpaperBuild\app\outputs\apk\debug\`)
 - **App Starten**: `adb shell "am start -n de.seelig.wetterwallpaper/.MainActivity"`
 
 ## Richtlinien für Agents
