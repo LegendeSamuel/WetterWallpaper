@@ -36,6 +36,7 @@ Formal ist dann eine Uhr gewählt, angezeigt wird aber nichts, und die Systemuhr
 - **ADB**: `C:\Users\flapp\AppData\Local\Android\Sdk\platform-tools\adb.exe`
 - **Build-Typ**: `debug` ist absichtlich `debuggable false`. Debuggable rechnet die Szene etwa 3x langsamer (18 s statt 6 s auf dem S24). Log und `adb` funktionieren trotzdem.
 - **Schrift**: Die UI-Schrift heißt neutral `@font/app_sans`. Im Repo liegt Lexend (OFL, `res/font/lexend_*.ttf`). Sofia Pro darf **nie** ins Repo und nie in einen Release-Build. Lokal im Debug-Build: in `local.properties` `brandFonts.dir=../_fonts/SofiaPro` setzen (Ordner mit `sofiapro_<schnitt>.otf`), dann überdeckt die Task `generateBrandFonts` die Lexend-Dateien. `mergeReleaseResources` bricht ab, wenn eine Datei mit „sofia“ im Namen in den Ressourcen landet.
+- **Release**: `./gradlew assembleRelease` (bzw. `bundleRelease`). Signiert wird nur, wenn `keystore.properties` (Vorlage `keystore.properties.example`) oder die Umgebungsvariablen `WW_KEYSTORE_FILE`, `WW_KEYSTORE_PASSWORD`, `WW_KEY_ALIAS`, `WW_KEY_PASSWORD` gesetzt sind. Keystore und Passwörter nie ins Repo. Tests: `./gradlew testDebugUnitTest`.
 - **APK Installieren**: `adb install -r app/build/outputs/apk/debug/app-debug.apk` (beim Bauen mit dem Init-Skript liegt sie in `%LOCALAPPDATA%\WetterWallpaperBuild\app\outputs\apk\debug\`)
 - **App Starten**: `adb shell "am start -n de.seelig.wetterwallpaper/.MainActivity"`
 

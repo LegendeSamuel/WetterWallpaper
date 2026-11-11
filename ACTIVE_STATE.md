@@ -1,8 +1,18 @@
 # ACTIVE_STATE
 
-**Last Updated:** 2026-11-11 14:18
+**Last Updated:** 2026-11-11 14:20
 **Active Agent:** Claude Code (Fable 5.2)
-**Current Goal:** Repo auf Portfolio-Stand bringen (Plan A, Phasen 0–5) und Play Store vorbereiten (Plan B, Phase 6). Keine Funktionsänderungen an der App. Phasen 0 bis 4 sind fertig, als Nächstes Phase 5 (Release v1.0.0: Signing, Version, CHANGELOG).
+**Current Goal:** Repo auf Portfolio-Stand bringen (Plan A, Phasen 0–5) und Play Store vorbereiten (Plan B, Phase 6). Keine Funktionsänderungen an der App. Phasen 0 bis 4 sind fertig, Phase 5 ist bis auf Signieren, Gerätetest und Release-Draft vorbereitet (braucht den User). Als Nächstes Phase 6 auf dem Branch play-prep.
+
+## 11.11. 14:20: Phase 5 vorbereitet (Release v1.0.0), Schritt 3 offen
+- **Signing (`app/build.gradle`):** `signingConfigs.release` liest `keystore.properties` (gitignored, Vorlage `keystore.properties.example`) oder die Umgebungsvariablen `WW_KEYSTORE_FILE`, `WW_KEYSTORE_PASSWORD`, `WW_KEY_ALIAS`, `WW_KEY_PASSWORD`. Ohne beides entsteht `app-release-unsigned.apk`. `minifyEnabled false`.
+- **Version:** `versionCode 3`, `versionName '1.0.0'`. `CHANGELOG.md` (englisch, nur Nutzerrelevantes).
+- **Geprüft:** Release-Build ohne Keystore (unsigniert) und mit einem Wegwerf-Keystore über die Umgebungsvariablen: `apksigner verify` ok, Paket zeigt 1.0.0 (3), targetSdk 34, arm64-v8a. Der Wegwerf-Keystore lag nur im Scratchpad der Sitzung und ist **kein** Release-Schlüssel.
+- **Offen (braucht den User):**
+  1. Release-Keystore selbst anlegen, außerhalb des Repos, z. B. `keytool -genkeypair -v -keystore ../_keys/wetterwallpaper-release.jks -alias wetterwallpaper -keyalg RSA -keysize 4096 -validity 10000`; Passwort sicher ablegen, Keystore sichern. Dann `keystore.properties` aus der Vorlage füllen.
+  2. `./gradlew assembleRelease` → `app-release.apk`, auf dem Gerät testen. **Achtung:** Die Release-APK ist anders signiert als der Debug-Build. Android installiert sie nicht über die vorhandene App; vorher Favoriten als ZIP teilen, dann die alte App deinstallieren.
+  3. Commits pushen, CI abwarten, dann Draft anlegen: `gh release create v1.0.0 <app-release.apk> --draft --title "v1.0.0" --notes-file CHANGELOG.md`. Veröffentlichen erst nach Freigabe des Users. Vor dem Veröffentlichen in `CHANGELOG.md` „not yet released“ durch das Datum ersetzen.
+- `WetterWallpaper-debug.apk` im Projektordner ist gitignored (`*.apk`) und bleibt lokal.
 
 ## 11.11. 14:18: Phase 4 fertig (README)
 - **README.md** neu auf Englisch mit deutscher Kurzfassung, ersetzt das deutsche README aus PR #1 (dessen Stand per Merge von `origin/main` lokal ankam). Aufbau: ein Satz, Features, Architektur (zwei Mermaid-Diagramme: Komponenten, Settings-Ebenen Tag → Modus → Bildschirm), technische Entscheidungen, Build, Grenzen, Lizenz. CI-Badge oben.

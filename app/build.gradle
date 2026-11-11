@@ -2,6 +2,16 @@ plugins {
     id 'com.android.application'
 }
 
+// --- Release-Signing ------------------------------------------------------------------------------
+// Aus keystore.properties im Projektordner (gitignored, Vorlage: keystore.properties.example) oder aus den
+// Umgebungsvariablen WW_KEYSTORE_FILE, WW_KEYSTORE_PASSWORD, WW_KEY_ALIAS, WW_KEY_PASSWORD.
+// Fehlt beides, entsteht ein unsigniertes Release-APK. Der Keystore selbst gehört nie ins Repo.
+def keystoreProps = new Properties()
+def keystorePropsFile = rootProject.file('keystore.properties')
+if (keystorePropsFile.isFile()) keystorePropsFile.withInputStream { keystoreProps.load(it) }
+def signingValue = { String key, String env -> keystoreProps.getProperty(key) ?: System.getenv(env) }
+def releaseStoreFile = signingValue('storeFile', 'WW_KEYSTORE_FILE')
+
 android {
     namespace 'de.seelig.wetterwallpaper'
     compileSdk 34
@@ -10,14 +20,32 @@ android {
         applicationId 'de.seelig.wetterwallpaper'
         minSdk 29
         targetSdk 34
-        versionCode 2
-        versionName '0.2'
+        versionCode 3
+        versionName '1.0.0'
         // nur das S24/moderne Handys: hält die ONNX-Runtime klein
         ndk { abiFilters 'arm64-v8a' }
     }
 
-    // Nicht debuggable: ART optimiert sonst die Pixelschleifen kaum (Szene ~10x langsamer). Log und adb gehen trotzdem.
-    buildTypes { debug { debuggable false } }
+    signingConfigs {
+        if (releaseStoreFile) {
+            release {
+                storeFile rootProject.file(releaseStoreFile)
+                storePassword signingValue('storePassword', 'WW_KEYSTORE_PASSWORD')
+                keyAlias signingValue('keyAlias', 'WW_KEY_ALIAS')
+                keyPassword signingValue('keyPassword', 'WW_KEY_PASSWORD')
+            }
+        }
+    }
+
+    buildTypes {
+        // Nicht debuggable: ART optimiert sonst die Pixelschleifen kaum (Szene ~10x langsamer). Log und adb gehen trotzdem.
+        debug { debuggable false }
+        release {
+            // Kein R8: die ONNX Runtime (JNI) bräuchte sonst Keep-Regeln.
+            minifyEnabled false
+            if (releaseStoreFile) signingConfig signingConfigs.release
+        }
+    }
 
     compileOptions {
         sourceCompatibility JavaVersion.VERSION_17
