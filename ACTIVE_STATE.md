@@ -29,7 +29,7 @@
 1. User: pushen (`git push origin main`, `git push -u origin play-prep`), ersten CI-Lauf ansehen.
 2. Handy per USB-Debugging: Lexend-Check auf Abschneiden mit Screenshots nach `tools/out/font-check/`, Abschnitt „Info“ ansehen, Debuggable-Messung (3× oder 10×), Gerätetests aus `docs/play/checklist.md` mit dem Build von `play-prep`.
 3. User: Release-Keystore anlegen, signiertes APK testen, Release-Draft v1.0.0 (Befehle im Eintrag zu Phase 5).
-4. Entscheidungen des Users: (Git-Historie und `marketing/wetter-reel.html` sind erledigt, siehe Eintrag 17:40.) `tools/input/berge.jpg` (Lizenz unklar) im öffentlichen Repo lassen? Neue Screenshots fürs README freigeben. Copyright-Name in `LICENSE`. Open-Meteo nicht-kommerziell bestätigen. `allowBackup`. Play ja/nein.
+4. Entscheidungen des Users: (Git-Historie und `marketing/wetter-reel.html` sind erledigt, siehe Eintrag 17:40.) `tools/input/berge.jpg` (Lizenz unklar) im öffentlichen Repo lassen? Neue Screenshots fürs README freigeben. Lizenz bleibt MIT (am 11.11. vom User bestätigt, `LICENSE` ist jetzt der reine MIT-Text, damit GitHub sie erkennt). Copyright-Name in `LICENSE`. Open-Meteo nicht-kommerziell bestätigen. `allowBackup`. Play ja/nein.
 
 ## 11.11. 14:20: Phase 5 vorbereitet (Release v1.0.0), Schritt 3 offen
 - **Signing (`app/build.gradle`):** `signingConfigs.release` liest `keystore.properties` (gitignored, Vorlage `keystore.properties.example`) oder die Umgebungsvariablen `WW_KEYSTORE_FILE`, `WW_KEYSTORE_PASSWORD`, `WW_KEY_ALIAS`, `WW_KEY_PASSWORD`. Ohne beides entsteht `app-release-unsigned.apk`. `minifyEnabled false`.
