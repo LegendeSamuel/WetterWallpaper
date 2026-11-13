@@ -19,7 +19,7 @@ abgerufen am 11.11.2026. Vor dem Einreichen noch einmal dort nachsehen.
 - [x] `./gradlew testDebugUnitTest assembleDebug assembleRelease bundleRelease` läuft durch
 - [x] AAB: `./gradlew bundleRelease` → `app/build/outputs/bundle/release/app-release.aab` (etwa 63 MB)
 - [x] Native Bibliotheken sind auf 16 KB ausgerichtet (`libonnxruntime.so`, `libonnxruntime4j_jni.so`: `p_align` 0x4000)
-- [ ] Am Gerät getestet (siehe unten; offen sind nur noch Neustart und „Teilen“)
+- [ ] Am Gerät getestet (siehe unten; offen ist nur noch der Neustart)
 - [ ] `play-prep` nach `main` übernommen
 
 ## Verhaltensänderungen, im Code geprüft
@@ -48,7 +48,7 @@ Getestet am 11.11.2026 per adb auf dem Galaxy S24 Ultra (Android 17). Screenshot
 - [ ] Wallpaper läuft nach Neustart des Geräts
 - [x] Wetter und Standort bei geschlossener App: Der Dienst läuft als gebundener Vordergrunddienst mit Standort-Berechtigung, liest den Standort und holt das Wetter (geprüft mit dem Build von `main`, Prozesszustand auch mit `play-prep`). Die Berechtigung steht auf „nur während der Nutzung“.
 - [x] Kalender-Freigabe und Widget „Nächster Termin“ (zeigt den Eintrag von heute)
-- [ ] Foto wählen: Der Photo Picker öffnet sich. „Teilen → Wetter Wallpaper“ lässt sich per adb nicht prüfen (Android verweigert adb die Rechtevergabe für das Bild), bitte von Hand aus der Galerie teilen.
+- [x] Foto wählen: Der Photo Picker öffnet sich (per adb, Build von `play-prep`). „Teilen → Wetter Wallpaper“ hat der User am 13.11. von Hand bestätigt; installiert war dabei der Build von `main`.
 - [x] Schrift: nichts Wichtiges abgeschnitten (Lexend). Drei kosmetische Stellen, die es mit Sofia Pro genauso gibt: Favoriten-Kachel „Aktuelles s…“, „FOTO ÄNDERN“ zweizeilig, Vorschau der Galerie-Kachel „Datum & Wetter“ seitlich abgeschnitten.
 
 ## Schritte in der Play Console

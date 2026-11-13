@@ -4,6 +4,12 @@
 **Active Agent:** Claude Code (Fable 5.2)
 **Current Goal:** Repo auf Portfolio-Stand (Plan A) und Play-Vorbereitung (Plan B). Alle Phasen 0–6 sind so weit erledigt, wie es ohne Gerät und ohne Keystore geht, und gepusht; die CI ist grün. Offen sind Gerätetests, Signieren und die Entscheidungen des Users (siehe „Nächste Schritte“ im Eintrag zu Phase 6).
 
+## 13.11. (2): Rückmeldungen des Users
+- **GitHub-Support:** Ticket zur Entfernung der alten Commits und von `refs/pull/1/head` ist gestellt. Antwort steht aus; ob der Support eine lizenzierte Schrift als „sensitive data“ behandelt, ist offen.
+- **„Teilen → Wetter Wallpaper“:** vom User von Hand bestätigt (Build von `main`).
+- **Neue Fotos in `tools/input/`:** `1, 5, 8, 12, 14, 15, 22, 23, 26.jpg`, laut User alle selbst fotografiert (Canon EOS 1300D, keine GPS-Daten, keine Personen). Sie sind **nicht** committet: zusammen etwa 180 MB, `14.jpg` allein 112 MB und damit über GitHubs Grenze von 100 MB je Datei. Fürs Repo oder für Screenshots höchstens verkleinerte Kopien verwenden. Ob auch `berge.jpg` (schon im Repo, ohne EXIF) vom User stammt, ist noch nicht ausdrücklich bestätigt.
+- **Release v1.0.0:** dem User erklärt, Schritte siehe Eintrag „Phase 5“. Es gibt noch keinen Keystore und kein Release auf GitHub.
+
 ## 13.11.: Drei Funde aus dem Gerätetest behoben (vom User freigegeben) und am Gerät nachgeprüft
 - **Am Gerät bestätigt (S24 Ultra, Build von `main` mit den Korrekturen):** Nach zwei Installationen ohne geöffnete App je genau ein „Wetter aktualisiert“ (vorher drei). Uhr mit Stil „Spalte“ entfernt und über die Galerie als „Digitale Uhr“ eingeschaltet: Chip „Digital“ ist markiert, darunter die Optionen der Digitaluhr. Leiste eingeklappt: Tipp auf die Uhr holt sie zurück, Ziehen der Uhr lässt sie eingeklappt. Entwurf danach per „Rückgängig“ auf den Stand vor dem Test gebracht (Config identisch), Start- und Sperrbildschirm unverändert. Der Satz „Nicht geprüft: am Gerät“ weiter unten ist damit überholt.
 - **Uhr-Design-Chips:** `WidgetManager.addOrEnable` ruft nach dem Setzen des Stils `a.refreshPanels()` statt nur `buildChips()`. Damit wird auch das Uhr-Panel (`clockContentView`) mit dem neuen Stil neu aufgebaut.
