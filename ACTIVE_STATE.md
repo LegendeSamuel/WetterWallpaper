@@ -1,8 +1,31 @@
 # ACTIVE_STATE
 
-**Last Updated:** 2026-11-11 17:40
+**Last Updated:** 2026-11-13
 **Active Agent:** Claude Code (Fable 5.2)
 **Current Goal:** Repo auf Portfolio-Stand (Plan A) und Play-Vorbereitung (Plan B). Alle Phasen 0–6 sind so weit erledigt, wie es ohne Gerät und ohne Keystore geht, und gepusht; die CI ist grün. Offen sind Gerätetests, Signieren und die Entscheidungen des Users (siehe „Nächste Schritte“ im Eintrag zu Phase 6).
+
+## 13.11.: Drei Funde aus dem Gerätetest behoben (vom User freigegeben) und am Gerät nachgeprüft
+- **Am Gerät bestätigt (S24 Ultra, Build von `main` mit den Korrekturen):** Nach zwei Installationen ohne geöffnete App je genau ein „Wetter aktualisiert“ (vorher drei). Uhr mit Stil „Spalte“ entfernt und über die Galerie als „Digitale Uhr“ eingeschaltet: Chip „Digital“ ist markiert, darunter die Optionen der Digitaluhr. Leiste eingeklappt: Tipp auf die Uhr holt sie zurück, Ziehen der Uhr lässt sie eingeklappt. Entwurf danach per „Rückgängig“ auf den Stand vor dem Test gebracht (Config identisch), Start- und Sperrbildschirm unverändert. Der Satz „Nicht geprüft: am Gerät“ weiter unten ist damit überholt.
+- **Uhr-Design-Chips:** `WidgetManager.addOrEnable` ruft nach dem Setzen des Stils `a.refreshPanels()` statt nur `buildChips()`. Damit wird auch das Uhr-Panel (`clockContentView`) mit dem neuen Stil neu aufgebaut.
+- **Wetterabruf:** `WeatherWallpaperService` hat eine gemeinsame `WEATHER`-Quelle für alle Engines statt einer je Engine. Luftwerte bleiben an, sobald eine Engine sie braucht (`setWantAir(true)`, nie zurück auf `false`), sonst würden sich Engines gegenseitig umschalten und Abrufe auslösen. `PreviewView` behält seine eigene Quelle.
+- **Eingeklappte Leiste:** `PreviewView` meldet einen Tipp auf ein Element ohne Ziehen über `Listener.onElementTap` (das Feld `emptyTap` heißt jetzt `tapPending` und gilt für beide Fälle). `MainActivity` klappt die Leiste dann wieder aus. Ziehen bei eingeklappter Leiste lässt sie eingeklappt.
+- **Geprüft:** `testDebugUnitTest` und `assembleDebug` laufen. **Nicht geprüft:** am Gerät. adb meldete das Handy als „unauthorized“, die USB-Debugging-Freigabe muss auf dem Handy neu bestätigt werden. Dann: Uhr über die Galerie einschalten und „Inhalt“ ansehen; nach `adb install -r` im Log nur ein „Wetter aktualisiert“ erwarten; Leiste einklappen, Element antippen.
+- Die kosmetischen Punkte (Fund 4) sind unverändert.
+
+## 11.11. 23:55: Gerätetest per adb (S24 Ultra, Android 17)
+- **Ablauf:** Test-APKs in Git-Worktrees außerhalb von OneDrive gebaut (ohne `brandFonts.dir`, also mit Lexend): `play-prep`, `main`, `main` debuggable. Am Ende ist der normale lokale Debug-Build von `main` mit Sofia Pro installiert (1.0.0, targetSdk 34, nicht debuggable). Die App-Version auf dem Handy war vorher 0.2 vom 30.10.
+- **Sicherung vor dem Test:** `../_backups/wetterwallpaper-handy-2026-11-11/` (94 Dateien aus `Android/data/…/files` plus `intern.tar` mit den SharedPreferences). Enthält private Fotos und Sofia Pro, nie veröffentlichen.
+- **Debuggable gemessen:** Summe beider Szenen direkt nach der Installation: debuggable 5,5 / 5,8 / 7,3 / 8,9 s (Mittel 6,9 s), nicht debuggable 3,3 / 3,4 / 3,5 s (Mittel 3,4 s). Also etwa Faktor 2. README, AGENTS.md und der Kommentar in `app/build.gradle` sind angepasst.
+- **Bestanden mit `play-prep` (targetSdk 36):** Start und Ränder; alle Blätter (Einstellungen, Modus, Galerie, Werkzeuggruppen) mit Lexend; Abschnitt „Info“; „Zurück“ im Zuschnitt während der Berechnung gesperrt, danach frei; Photo Picker öffnet; Speichern nur Sperr- bzw. nur Startbildschirm; Termin-Widget; zweite Uhr hinzufügen und ziehen; Reihenfolge per Ziehen am Griff.
+- **Standort im Hintergrund:** Berechtigung steht auf „nur während der Nutzung“. Bei geschlossener App läuft der Prozess als gebundener Vordergrunddienst (procState 5) mit Standort-Fähigkeit; nach einem Neustart des Prozesses ohne geöffnete App wurde der Standort gelesen und das Wetter geholt. `ACCESS_BACKGROUND_LOCATION` war dafür nicht nötig.
+- **Funde (nichts geändert, alles außerhalb des Auftrags „keine Funktionsänderungen“):**
+  1. Uhr über die Galerie als „Digitale Uhr“ wieder einschalten, wenn der gespeicherte Stil `column` war: Config und Vorschau sind digital, die Design-Chips unter „Inhalt“ zeigen weiter „Spalte“ samt dessen Unteroptionen (das Panel wird nach `WidgetManager.addOrEnable` nicht neu aufgebaut).
+  2. Beim Start des Dienstes stehen drei „Wetter aktualisiert“ innerhalb von 300 ms im Log, also drei gleichzeitige Abrufe statt einem.
+  3. Ist die Leiste eingeklappt, holt das Antippen eines Elements sie nicht zurück, nur ein Tipp auf eine leere Stelle.
+  4. Kosmetisch, mit Sofia Pro genauso: Favoriten-Kachel „Aktuelles s…“, „FOTO ÄNDERN“ zweizeilig und höher als „Ausschnitt“, Vorschau der Galerie-Kachel „Datum & Wetter“ seitlich abgeschnitten. Das Blatt „Reihenfolge“ ist so durchsichtig, dass die Leiste darunter durchscheint.
+- **Nicht getestet:** Neustart des Geräts (das Handy war in Benutzung), „Teilen → Wetter Wallpaper“ (per adb nicht möglich, die Rechtevergabe für das Bild wird verweigert), Skalieren per Zwei-Finger-Geste, „Beide“ beim Speichern, Sperrbildschirm selbst angesehen (hätte das Handy gesperrt), „Uhr vor einem Widget“ optisch (Reihenfolge wird gespeichert, die Elemente überlappten nicht).
+- **Zustand des Handys danach:** Start- und Sperrbildschirm stimmen per Prüfsumme mit der Sicherung überein. Im Editor liegt der Favorit mit dem Kiefern-Foto, den der User während des Tests selbst geladen hat; dessen Hintergrund wurde durch den Zuschnitt-Test einmal neu berechnet (gleiches Foto, gleicher Ausschnitt).
+- **Aufräumen offen:** `.git/worktrees/main` und `.git/worktrees/pp` sind leere Reste, die OneDrive beim Löschen gesperrt hat; `git worktree prune` später noch einmal ausführen.
 
 ## 11.11. 17:40: Sofia Pro aus der Git-Historie entfernt (Force-Push, vom User freigegeben)
 - **Entfernt aus allen Commits:** `app/src/main/res/font/sofiapro_*.otf` (6 Dateien) und `marketing/wetter-reel.html` (bettet Sofia Pro als Base64 ein). Umgeschrieben mit `git filter-branch --index-filter` in einem frischen Bare-Klon, dann Force-Push mit Lease auf `main`, `play-prep` und `docs/readme`.
@@ -29,7 +52,7 @@
 1. User: pushen (`git push origin main`, `git push -u origin play-prep`), ersten CI-Lauf ansehen.
 2. Handy per USB-Debugging: Lexend-Check auf Abschneiden mit Screenshots nach `tools/out/font-check/`, Abschnitt „Info“ ansehen, Debuggable-Messung (3× oder 10×), Gerätetests aus `docs/play/checklist.md` mit dem Build von `play-prep`.
 3. User: Release-Keystore anlegen, signiertes APK testen, Release-Draft v1.0.0 (Befehle im Eintrag zu Phase 5).
-4. Entscheidungen des Users: (Git-Historie und `marketing/wetter-reel.html` sind erledigt, siehe Eintrag 17:40.) `tools/input/berge.jpg` (Lizenz unklar) im öffentlichen Repo lassen? Neue Screenshots fürs README freigeben. Copyright-Name in `LICENSE`. Open-Meteo nicht-kommerziell bestätigen. `allowBackup`. Play ja/nein.
+4. Entscheidungen des Users: (Git-Historie und `marketing/wetter-reel.html` sind erledigt, siehe Eintrag 17:40.) `tools/input/berge.jpg` (Lizenz unklar) im öffentlichen Repo lassen? Neue Screenshots fürs README freigeben. Lizenz bleibt MIT (am 11.11. vom User bestätigt, `LICENSE` ist jetzt der reine MIT-Text, damit GitHub sie erkennt). README-Absätze „plain Java" und „Open-Meteo" sind seit 11.11. auf im Code geprüfte Fakten gekürzt (keine Motivation mehr). Copyright-Name in `LICENSE`. Open-Meteo nicht-kommerziell bestätigen. `allowBackup`. Play ja/nein.
 
 ## 11.11. 14:20: Phase 5 vorbereitet (Release v1.0.0), Schritt 3 offen
 - **Signing (`app/build.gradle`):** `signingConfigs.release` liest `keystore.properties` (gitignored, Vorlage `keystore.properties.example`) oder die Umgebungsvariablen `WW_KEYSTORE_FILE`, `WW_KEYSTORE_PASSWORD`, `WW_KEY_ALIAS`, `WW_KEY_PASSWORD`. Ohne beides entsteht `app-release-unsigned.apk`. `minifyEnabled false`.

@@ -38,7 +38,7 @@ android {
     }
 
     buildTypes {
-        // Nicht debuggable: ART optimiert sonst die Pixelschleifen kaum (Szene ~10x langsamer). Log und adb gehen trotzdem.
+        // Nicht debuggable: ART optimiert sonst die Pixelschleifen kaum (Szene etwa 2x langsamer, gemessen am 11.11.2026). Log und adb gehen trotzdem.
         debug { debuggable false }
         release {
             // Kein R8: die ONNX Runtime (JNI) bräuchte sonst Keep-Regeln.

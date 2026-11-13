@@ -317,7 +317,7 @@ final class WidgetManager {
             settings.put("clock", "style", style);
             a.changed();
             selected = "clock";
-            buildChips();
+            a.refreshPanels(); // baut auch die Design-Chips der Uhr mit dem neuen Stil neu auf
             select("clock");
             return;
         }

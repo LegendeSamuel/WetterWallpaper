@@ -37,6 +37,8 @@ public final class PreviewView extends View {
         void onSelected(String id);
         /** Freie Stelle angetippt (kein Ziehen). */
         void onEmptyTap();
+        /** Element angetippt, ohne es zu ziehen. */
+        void onElementTap(String id);
         /** Mit zwei Fingern skaliert und verschoben (Größe in % der Bildbreite). */
         void onResized(String id, float sizePct, float xPct, float yPct, float rotation);
     }
@@ -92,7 +94,7 @@ public final class PreviewView extends View {
     private final Paint guide = new Paint(Paint.ANTI_ALIAS_FLAG);
     private float dragDx;
     private float dragDy;
-    private boolean emptyTap;
+    private boolean tapPending;
     private float downX;
     private float downY;
     /** Gestrichelter Rahmen um das gewählte Element: 0 keiner, 1 Uhr, 2 Widget. */
@@ -467,13 +469,11 @@ public final class PreviewView extends View {
                 pinchDone = false;
                 long now = System.currentTimeMillis();
                 String hit = hitTest(e.getX(), e.getY(), sceneTime(now), previewWeather());
-                if (hit == null) {
-                    // freie Stelle: beim Loslassen ohne Ziehen als Tipp melden
-                    emptyTap = true;
-                    downX = e.getX();
-                    downY = e.getY();
-                    return true;
-                }
+                // beim Loslassen ohne Ziehen als Tipp melden: freie Stelle oder Element
+                tapPending = true;
+                downX = e.getX();
+                downY = e.getY();
+                if (hit == null) return true;
                 dragId = hit;
                 float[] pos = renderer.position(hit);
                 dragDx = pos[0] / 100 * getWidth() - e.getX();
@@ -489,7 +489,7 @@ public final class PreviewView extends View {
                 if (e.getPointerCount() != 2 || id == null || pinchDone) return true;
                 pinchId = id;
                 dragId = null;
-                emptyTap = false;
+                tapPending = false;
                 pinchDist0 = Math.max(1f, distance(e));
                 pinchSize0 = renderer.sizePct(id);
                 pinchFx0 = (e.getX(0) + e.getX(1)) / 2;
@@ -525,8 +525,8 @@ public final class PreviewView extends View {
                     return true;
                 }
                 if (pinchDone) return true;
-                if (emptyTap && Math.hypot(e.getX() - downX, e.getY() - downY) > getWidth() * 0.03f) emptyTap = false;
-                if (dragId == null) return emptyTap;
+                if (tapPending && Math.hypot(e.getX() - downX, e.getY() - downY) > getWidth() * 0.03f) tapPending = false;
+                if (dragId == null) return tapPending;
                 float xPct = clampPct((e.getX() + dragDx) / getWidth() * 100, 5, 95);
                 float yPct = clampPct((e.getY() + dragDy) / getHeight() * 100, 5, 97);
                 // Fläche verschiebt sich mit der Position: Kanten und Mitte an den Linien einrasten
@@ -561,15 +561,17 @@ public final class PreviewView extends View {
                     return true;
                 }
                 if (dragId == null) {
-                    boolean tap = emptyTap && e.getActionMasked() == MotionEvent.ACTION_UP;
-                    emptyTap = false;
+                    boolean tap = tapPending && e.getActionMasked() == MotionEvent.ACTION_UP;
+                    tapPending = false;
                     if (tap && listener != null) listener.onEmptyTap();
                     return tap;
                 }
                 if (listener != null) {
                     float[] pos = renderer.position(dragId);
                     listener.onMoved(dragId, pos[0], pos[1]);
+                    if (tapPending && e.getActionMasked() == MotionEvent.ACTION_UP) listener.onElementTap(dragId);
                 }
+                tapPending = false;
                 dragId = null;
                 scheduleBackdrop();
                 return true;
