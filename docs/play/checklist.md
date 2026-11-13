@@ -20,7 +20,7 @@ abgerufen am 11.11.2026. Vor dem Einreichen noch einmal dort nachsehen.
 - [x] AAB: `./gradlew bundleRelease` → `app/build/outputs/bundle/release/app-release.aab` (etwa 63 MB)
 - [x] Native Bibliotheken sind auf 16 KB ausgerichtet (`libonnxruntime.so`, `libonnxruntime4j_jni.so`: `p_align` 0x4000)
 - [ ] Am Gerät getestet (siehe unten; offen ist nur noch der Neustart)
-- [ ] `play-prep` nach `main` übernommen
+- [x] `play-prep` nach `main` übernommen (PR #2, 13.11.2026)
 
 ## Verhaltensänderungen, im Code geprüft
 
