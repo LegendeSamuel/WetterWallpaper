@@ -78,7 +78,7 @@ flowchart LR
 
 ## Build
 
-Requirements: JDK 17 or newer and the Android SDK (platform 34). The Gradle wrapper is included.
+Requirements: JDK 17 or newer and the Android SDK (platform 36). The Gradle wrapper is included.
 
 ```bash
 git clone https://github.com/LegendeSamuel/WetterWallpaper.git
