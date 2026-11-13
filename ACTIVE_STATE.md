@@ -7,7 +7,7 @@
 ## 13.11. (2): Rückmeldungen des Users
 - **GitHub-Support:** Ticket zur Entfernung der alten Commits und von `refs/pull/1/head` ist gestellt. Antwort steht aus; ob der Support eine lizenzierte Schrift als „sensitive data“ behandelt, ist offen.
 - **„Teilen → Wetter Wallpaper“:** vom User von Hand bestätigt (Build von `main`).
-- **Neue Fotos in `tools/input/`:** `1, 5, 8, 12, 14, 15, 22, 23, 26.jpg`, laut User alle selbst fotografiert (Canon EOS 1300D, keine GPS-Daten, keine Personen). Sie sind **nicht** committet: zusammen etwa 180 MB, `14.jpg` allein 112 MB und damit über GitHubs Grenze von 100 MB je Datei. Fürs Repo oder für Screenshots höchstens verkleinerte Kopien verwenden. Ob auch `berge.jpg` (schon im Repo, ohne EXIF) vom User stammt, ist noch nicht ausdrücklich bestätigt.
+- **Neue Fotos in `tools/input/`:** `1, 5, 8, 12, 14, 15, 22, 23, 26.jpg`, laut User alle selbst fotografiert (Canon EOS 1300D, keine GPS-Daten, keine Personen). Sie sind **nicht** committet: zusammen etwa 180 MB, `14.jpg` allein 112 MB und damit über GitHubs Grenze von 100 MB je Datei. Fürs Repo oder für Screenshots höchstens verkleinerte Kopien verwenden. `berge.jpg` (schon im Repo, ohne EXIF) stammt laut User ebenfalls von ihm (am 13.11. bestätigt); die Frage aus Phase 1 ist damit erledigt.
 - **Release v1.0.0:** dem User erklärt, Schritte siehe Eintrag „Phase 5“. Es gibt noch keinen Keystore und kein Release auf GitHub.
 
 ## 13.11.: Drei Funde aus dem Gerätetest behoben (vom User freigegeben) und am Gerät nachgeprüft
