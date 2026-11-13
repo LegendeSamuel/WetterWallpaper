@@ -14,12 +14,12 @@ def releaseStoreFile = signingValue('storeFile', 'WW_KEYSTORE_FILE')
 
 android {
     namespace 'de.seelig.wetterwallpaper'
-    compileSdk 34
+    compileSdk 36
 
     defaultConfig {
         applicationId 'de.seelig.wetterwallpaper'
         minSdk 29
-        targetSdk 34
+        targetSdk 36
         versionCode 3
         versionName '1.0.0'
         // nur das S24/moderne Handys: hält die ONNX-Runtime klein

@@ -1,7 +1,7 @@
 # Wetter Wallpaper (Android Live Wallpaper)
 
 ## Projektübersicht
-Natives Java-Projekt, getestet auf dem Samsung Galaxy S24 Ultra (One UI 8.5 / Android 16, API 36). Build: compileSdk 34, targetSdk 34, minSdk 29, nur `arm64-v8a`, AGP 8.7.3, Gradle 8.13.
+Natives Java-Projekt, getestet auf dem Samsung Galaxy S24 Ultra (One UI 8.5 / Android 16, API 36). Build: compileSdk 36, targetSdk 36, minSdk 29, nur `arm64-v8a`, AGP 8.13.2, Gradle 8.13.
 Erstellt ein dynamisches Wetter-Live-Wallpaper aus einem beliebigen Foto mit On-Device-Tiefenberechnung (Depth Anything V2 Small via ONNX Runtime).
 
 ## Architektur & Kernkomponenten
