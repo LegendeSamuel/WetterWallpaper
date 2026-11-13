@@ -1,8 +1,15 @@
 # ACTIVE_STATE
 
-**Last Updated:** 2026-11-11 23:55
+**Last Updated:** 2026-11-13
 **Active Agent:** Claude Code (Fable 5.2)
 **Current Goal:** Repo auf Portfolio-Stand (Plan A) und Play-Vorbereitung (Plan B). Alle Phasen 0–6 sind so weit erledigt, wie es ohne Gerät und ohne Keystore geht, und gepusht; die CI ist grün. Offen sind Gerätetests, Signieren und die Entscheidungen des Users (siehe „Nächste Schritte“ im Eintrag zu Phase 6).
+
+## 13.11.: Drei Funde aus dem Gerätetest behoben (vom User freigegeben), am Gerät noch nicht nachgeprüft
+- **Uhr-Design-Chips:** `WidgetManager.addOrEnable` ruft nach dem Setzen des Stils `a.refreshPanels()` statt nur `buildChips()`. Damit wird auch das Uhr-Panel (`clockContentView`) mit dem neuen Stil neu aufgebaut.
+- **Wetterabruf:** `WeatherWallpaperService` hat eine gemeinsame `WEATHER`-Quelle für alle Engines statt einer je Engine. Luftwerte bleiben an, sobald eine Engine sie braucht (`setWantAir(true)`, nie zurück auf `false`), sonst würden sich Engines gegenseitig umschalten und Abrufe auslösen. `PreviewView` behält seine eigene Quelle.
+- **Eingeklappte Leiste:** `PreviewView` meldet einen Tipp auf ein Element ohne Ziehen über `Listener.onElementTap` (das Feld `emptyTap` heißt jetzt `tapPending` und gilt für beide Fälle). `MainActivity` klappt die Leiste dann wieder aus. Ziehen bei eingeklappter Leiste lässt sie eingeklappt.
+- **Geprüft:** `testDebugUnitTest` und `assembleDebug` laufen. **Nicht geprüft:** am Gerät. adb meldete das Handy als „unauthorized“, die USB-Debugging-Freigabe muss auf dem Handy neu bestätigt werden. Dann: Uhr über die Galerie einschalten und „Inhalt“ ansehen; nach `adb install -r` im Log nur ein „Wetter aktualisiert“ erwarten; Leiste einklappen, Element antippen.
+- Die kosmetischen Punkte (Fund 4) sind unverändert.
 
 ## 11.11. 23:55: Gerätetest per adb (S24 Ultra, Android 17)
 - **Ablauf:** Test-APKs in Git-Worktrees außerhalb von OneDrive gebaut (ohne `brandFonts.dir`, also mit Lexend): `play-prep`, `main`, `main` debuggable. Am Ende ist der normale lokale Debug-Build von `main` mit Sofia Pro installiert (1.0.0, targetSdk 34, nicht debuggable). Die App-Version auf dem Handy war vorher 0.2 vom 30.10.

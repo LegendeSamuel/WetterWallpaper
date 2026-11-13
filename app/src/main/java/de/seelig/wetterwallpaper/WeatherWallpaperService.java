@@ -49,6 +49,8 @@ public class WeatherWallpaperService extends WallpaperService {
      * und Parameter werden nur einmal berechnet, nacheinander statt parallel um die Kerne konkurrierend.
      */
     private static final ExecutorService SCENE_LOADER = Executors.newSingleThreadExecutor();
+    /** Ein Wetterabruf für alle Engines; je Engine eine eigene Quelle hieß: beim Start drei Abrufe gleichzeitig. */
+    private static final WeatherSource WEATHER = new WeatherSource();
     /** Zuletzt benutzte Szenen; zwei, damit Start- und Sperrbildschirm mit verschiedenen Einstellungen nicht abwechselnd neu rechnen. */
     private static final java.util.LinkedHashMap<String, Future<Scene>> SCENES = new java.util.LinkedHashMap<String, Future<Scene>>(4, 0.75f, true) {
         @Override
@@ -80,7 +82,6 @@ public class WeatherWallpaperService extends WallpaperService {
     private class LayerEngine extends Engine {
         private final Handler handler = new Handler(Looper.getMainLooper());
         private final Runnable tick = this::drawFrame;
-        private final WeatherSource weatherSource = new WeatherSource();
         private final DeviceInfo device = new DeviceInfo(WeatherWallpaperService.this);
         private final InfoWidgets.Data widgetData = new InfoWidgets.Data();
         private final ExecutorService loader = Executors.newSingleThreadExecutor();
@@ -286,10 +287,12 @@ public class WeatherWallpaperService extends WallpaperService {
             double la = Double.isNaN(lat) ? loc.optDouble("lat", 51.0) : lat;
             double lo = Double.isNaN(lat) ? loc.optDouble("lon", 10.0) : lon;
             long now = System.currentTimeMillis();
-            Weather wx = renderer.chooseWeather(weatherSource, la, lo);
+            Weather wx = renderer.chooseWeather(WEATHER, la, lo);
             // Daten für die Info-Widgets (Zeit und Wetter setzt der Renderer)
-            weatherSource.setWantAir(renderer.wants("air"));
-            widgetData.f = weatherSource.forecast();
+            // ponytail: Luftwerte bleiben an, sobald eine Engine sie braucht (sonst schalten sich die Engines
+            // gegenseitig um und lösen Abrufe aus); bis zum Prozessende ein Zusatzabruf alle 30 min.
+            if (renderer.wants("air")) WEATHER.setWantAir(true);
+            widgetData.f = WEATHER.forecast();
             widgetData.battery = device.battery();
             widgetData.charging = device.charging();
             widgetData.calendarGranted = DeviceInfo.calendarGranted(WeatherWallpaperService.this);

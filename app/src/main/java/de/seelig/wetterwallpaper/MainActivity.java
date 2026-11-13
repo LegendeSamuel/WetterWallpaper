@@ -229,6 +229,12 @@ public class MainActivity extends AppCompatActivity {
             }
 
             @Override
+            public void onElementTap(String id) {
+                // eingeklappte Leiste zurückholen; Ziehen bei eingeklappter Leiste lässt sie zu
+                if (collapsed) setCollapsed(false);
+            }
+
+            @Override
             public void onResized(String id, float sizePct, float xPct, float yPct, float rotation) {
                 settings.put(id, "sizePct", Math.round(sizePct * 10) / 10.0);
                 settings.put(id, "xPct", Math.round(xPct * 10) / 10.0);
