@@ -2,7 +2,7 @@
 
 All notable changes for users of the app. Versions follow [Semantic Versioning](https://semver.org/).
 
-## [1.0.0] – not yet released
+## [1.0.0] – 2026-11-13
 
 First public release.
 
